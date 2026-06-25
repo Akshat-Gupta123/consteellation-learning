@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { Loader2, Rocket, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { ConstellationMark } from "@/components/ConstellationMark";
+
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -76,17 +78,16 @@ function AuthPage() {
     if (googleLoading) return;
     setGoogleLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${window.location.origin}/` },
+      await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
       });
-      if (error) throw error;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Google sign-in failed.";
       toast.error(msg);
       setGoogleLoading(false);
     }
   }
+
 
   return (
     <main className="relative grid min-h-screen place-items-center px-5 py-10">
