@@ -145,10 +145,14 @@ function GaragePage() {
                   )}
                 >
                   <div
-                    className="mb-2 grid h-20 w-full place-items-center rounded-lg text-xs text-white/80"
+                    className="mb-2 grid h-20 w-full place-items-center overflow-hidden rounded-lg text-xs text-white/80"
                     style={{ background: item?.swatch ?? "linear-gradient(135deg,#0f172a,#1e293b)" }}
                   >
-                    <Sparkles className="h-5 w-5 opacity-80" />
+                    {item?.image ? (
+                      <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Sparkles className="h-5 w-5 opacity-80" />
+                    )}
                   </div>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                     {slot.label}
@@ -204,10 +208,14 @@ function GaragePage() {
                   )}
                 >
                   <div
-                    className="grid h-28 w-full place-items-center rounded-xl text-white/80"
+                    className="grid h-28 w-full place-items-center overflow-hidden rounded-xl text-white/80"
                     style={{ background: item.swatch }}
                   >
-                    <Sparkles className="h-6 w-6 opacity-70" />
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Sparkles className="h-6 w-6 opacity-70" />
+                    )}
                   </div>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">

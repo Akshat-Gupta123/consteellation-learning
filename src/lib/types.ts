@@ -80,5 +80,6 @@ export interface GarageItem {
   description: string;
   price: number; // in IC
   rarity: "Standard" | "Rare" | "Legendary";
-  swatch: string; // gradient or color
+  swatch: string; // gradient or color (fallback)
+  image?: string; // imported asset URL
 }
