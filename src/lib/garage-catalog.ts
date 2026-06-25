@@ -1,4 +1,31 @@
 import type { GarageItem, GarageSlot } from "./types";
+import suit_basic from "@/assets/garage/suit_basic.jpg";
+import suit_aurora from "@/assets/garage/suit_aurora.jpg";
+import suit_solarflare from "@/assets/garage/suit_solarflare.jpg";
+import helmet_basic from "@/assets/garage/helmet_basic.jpg";
+import helmet_visor from "@/assets/garage/helmet_visor.jpg";
+import helmet_nova from "@/assets/garage/helmet_nova.jpg";
+import ship_basic from "@/assets/garage/ship_basic.jpg";
+import ship_orbit from "@/assets/garage/ship_orbit.jpg";
+import ship_starforge from "@/assets/garage/ship_starforge.jpg";
+import effect_none from "@/assets/garage/effect_none.jpg";
+import effect_stardust from "@/assets/garage/effect_stardust.jpg";
+import effect_supernova from "@/assets/garage/effect_supernova.jpg";
+
+const IMG: Record<string, string> = {
+  suit_basic,
+  suit_aurora,
+  suit_solarflare,
+  helmet_basic,
+  helmet_visor,
+  helmet_nova,
+  ship_basic,
+  ship_orbit,
+  ship_starforge,
+  effect_none,
+  effect_stardust,
+  effect_supernova,
+};
 
 /**
  * The Space Garage cosmetic catalog. Items are referenced by id from the

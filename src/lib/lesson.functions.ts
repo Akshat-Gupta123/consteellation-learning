@@ -237,8 +237,8 @@ export const completeStar = createServerFn({ method: "POST" })
         .from("profiles")
         .select("ic")
         .eq("id", context.userId)
-        .maybeSingle;
-      newBalance = (prof as { ic?: number } | null)?.ic ?? 0;
+        .maybeSingle();
+      newBalance = prof?.ic ?? 0;
       if (awardedIC > 0) {
         newBalance += awardedIC;
         await context.supabase
