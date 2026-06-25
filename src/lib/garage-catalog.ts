@@ -165,14 +165,10 @@ export const GARAGE_ITEMS: GarageItem[] = [
 ];
 
 export const SLOTS: { id: GarageSlot; label: string }[] = [
-  { id: "suit",
-    image: IMG.suit, label: "Suit" },
-  { id: "helmet",
-    image: IMG.helmet, label: "Helmet" },
-  { id: "ship",
-    image: IMG.ship, label: "Ship" },
-  { id: "effect",
-    image: IMG.effect, label: "Effect" },
+  { id: "suit", label: "Suit" },
+  { id: "helmet", label: "Helmet" },
+  { id: "ship", label: "Ship" },
+  { id: "effect", label: "Effect" },
 ];
 
 export function getItem(id: string): GarageItem | undefined {
