@@ -40,14 +40,18 @@ export interface MCQ {
 
 export interface LessonStep {
   title: string;
-  explanation: string; // teaches ONE idea
-  question: MCQ;
+  explanation: string; // teaches ONE idea with depth
+  /** Optional inline checkpoint question (a few steps may have one). */
+  question?: MCQ;
 }
 
 export interface Lesson {
   coreIdea: string;
   steps: LessonStep[];
-  practice: MCQ;
+  /** Optional single warmup mini-practice kept for back-compat. */
+  practice?: MCQ;
+  /** Full 10-question quiz administered after all teaching steps. */
+  quiz: MCQ[];
   summary: string;
 }
 
