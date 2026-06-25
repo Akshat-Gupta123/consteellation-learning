@@ -16,7 +16,9 @@ export const Route = createFileRoute("/_authenticated/lesson/$galaxyId/$starId")
   component: LessonScreen,
 });
 
-type Phase = "core" | "steps" | "practice" | "summary" | "complete";
+type Phase = "core" | "steps" | "quiz" | "summary" | "complete";
+
+const NOVA_QUIZ_LIMIT = 2;
 
 function LessonScreen() {
   const { galaxyId, starId } = useParams({
@@ -66,11 +68,19 @@ function LessonScreen() {
 
   const [phase, setPhase] = useState<Phase>("core");
   const [stepIndex, setStepIndex] = useState(0);
+  const [stepAnswered, setStepAnswered] = useState(false);
+  const [quizIndex, setQuizIndex] = useState(0);
+  const [quizCorrect, setQuizCorrect] = useState(0);
   const [novaOpen, setNovaOpen] = useState(false);
+  const [novaUsedOnQuestion, setNovaUsedOnQuestion] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     setPhase("core");
     setStepIndex(0);
+    setStepAnswered(false);
+    setQuizIndex(0);
+    setQuizCorrect(0);
+    setNovaUsedOnQuestion(new Set());
   }, [starId]);
 
   if (galaxyQuery.isLoading) return <Centered>Calibrating the lesson…</Centered>;
@@ -122,18 +132,41 @@ function LessonScreen() {
   }
 
   const lesson = lessonQuery.data as Lesson;
+  const totalQuiz = lesson.quiz.length;
+  const novaUsesLeft = NOVA_QUIZ_LIMIT - novaUsedOnQuestion.size;
+  const canAskNovaNow =
+    phase !== "quiz" || novaUsedOnQuestion.has(quizIndex) || novaUsesLeft > 0;
 
-  function handleAnswered(isCorrect: boolean, _selected: number) {
+  function handleAnswered(isCorrect: boolean) {
     if (isCorrect) {
       awardMutation.mutate(IC_REWARDS.CORRECT_ANSWER);
     }
   }
 
+  function handleStepAnswered(isCorrect: boolean) {
+    setStepAnswered(true);
+    handleAnswered(isCorrect);
+  }
+
+  function handleQuizAnswered(isCorrect: boolean) {
+    if (isCorrect) setQuizCorrect((c) => c + 1);
+    handleAnswered(isCorrect);
+  }
+
   function advanceFromStep() {
+    setStepAnswered(false);
     if (stepIndex < lesson.steps.length - 1) {
       setStepIndex((i) => i + 1);
     } else {
-      setPhase("practice");
+      setPhase("quiz");
+    }
+  }
+
+  function advanceFromQuiz() {
+    if (quizIndex < totalQuiz - 1) {
+      setQuizIndex((i) => i + 1);
+    } else {
+      setPhase("summary");
     }
   }
 
@@ -142,9 +175,26 @@ function LessonScreen() {
     setPhase("complete");
   }
 
+  function openNova() {
+    if (phase === "quiz") {
+      if (novaUsedOnQuestion.has(quizIndex)) {
+        setNovaOpen(true);
+        return;
+      }
+      if (novaUsesLeft <= 0) {
+        toast.error(`Nova can only assist on ${NOVA_QUIZ_LIMIT} quiz questions per lesson.`);
+        return;
+      }
+      setNovaUsedOnQuestion((s) => new Set(s).add(quizIndex));
+    }
+    setNovaOpen(true);
+  }
+
   const previousStars = galaxy.stars
     .slice(0, galaxy.stars.findIndex((s) => s.id === starId))
     .map((s) => s.title);
+
+  const currentStep = lesson.steps[stepIndex];
 
   return (
     <LessonShell
@@ -152,7 +202,12 @@ function LessonScreen() {
       star={star}
       alreadyDone={alreadyDone}
       onBack={() => navigate({ to: "/galaxy/$galaxyId", params: { galaxyId } })}
-      onAskNova={() => setNovaOpen(true)}
+      onAskNova={canAskNovaNow ? openNova : undefined}
+      novaBadge={
+        phase === "quiz"
+          ? `${novaUsesLeft}/${NOVA_QUIZ_LIMIT} left`
+          : undefined
+      }
     >
       {phase === "core" && (
         <section className="glass animate-float-up space-y-4 rounded-2xl p-5 sm:p-6">
@@ -169,29 +224,64 @@ function LessonScreen() {
         </section>
       )}
 
-      {phase === "steps" && (
-        <StepBlock
-          key={stepIndex}
-          step={lesson.steps[stepIndex]}
-          stepNumber={stepIndex + 1}
-          totalSteps={lesson.steps.length}
-          onAnswered={handleAnswered}
-          onContinue={advanceFromStep}
-        />
+      {phase === "steps" && currentStep && (
+        <section className="animate-float-up space-y-4" key={stepIndex}>
+          <div className="glass space-y-3 rounded-2xl p-5 sm:p-6">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-widest text-primary">
+                Step {stepIndex + 1} of {lesson.steps.length}
+              </span>
+            </div>
+            <h2 className="font-display text-lg font-bold text-foreground">{currentStep.title}</h2>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+              {currentStep.explanation}
+            </p>
+            {!currentStep.question && (
+              <Button onClick={advanceFromStep} className="glow-primary">
+                {stepIndex === lesson.steps.length - 1 ? "On to the quiz" : "Next step"}
+              </Button>
+            )}
+          </div>
+          {currentStep.question && (
+            <MCQCard
+              question={currentStep.question}
+              onAnswered={handleStepAnswered}
+              onContinue={advanceFromStep}
+              continueLabel={stepIndex === lesson.steps.length - 1 ? "On to the quiz" : "Next step"}
+            />
+          )}
+          {currentStep.question === undefined && stepAnswered}
+        </section>
       )}
 
-      {phase === "practice" && (
-        <section className="animate-float-up space-y-4">
-          <div className="flex items-center gap-2 text-purple">
-            <Sparkles className="h-4 w-4" />
-            <span className="text-xs font-semibold uppercase tracking-widest">Mini practice</span>
+      {phase === "quiz" && (
+        <section className="animate-float-up space-y-4" key={quizIndex}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-purple">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-xs font-semibold uppercase tracking-widest">
+                Quiz · {quizIndex + 1} of {totalQuiz}
+              </span>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              Score: <span className="text-gold">{quizCorrect}</span>/{totalQuiz}
+            </span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/40">
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{ width: `${((quizIndex) / totalQuiz) * 100}%` }}
+            />
           </div>
           <MCQCard
-            question={lesson.practice}
-            onAnswered={handleAnswered}
-            onContinue={() => setPhase("summary")}
-            continueLabel="See summary"
+            question={lesson.quiz[quizIndex]}
+            onAnswered={handleQuizAnswered}
+            onContinue={advanceFromQuiz}
+            continueLabel={quizIndex === totalQuiz - 1 ? "See summary" : "Next question"}
           />
+          <p className="text-center text-[11px] text-muted-foreground">
+            Nova can guide you on up to {NOVA_QUIZ_LIMIT} quiz questions — {novaUsesLeft} remaining.
+          </p>
         </section>
       )}
 
@@ -199,7 +289,9 @@ function LessonScreen() {
         <section className="glass animate-float-up space-y-4 rounded-2xl p-5 sm:p-6">
           <div className="flex items-center gap-2 text-gold">
             <Trophy className="h-4 w-4" />
-            <span className="text-xs font-semibold uppercase tracking-widest">Micro summary</span>
+            <span className="text-xs font-semibold uppercase tracking-widest">
+              Quiz complete · {quizCorrect}/{totalQuiz}
+            </span>
           </div>
           <p className="whitespace-pre-line text-base leading-relaxed text-foreground">
             {lesson.summary}
@@ -218,7 +310,7 @@ function LessonScreen() {
           </div>
           <h3 className="font-display text-xl font-bold">Star secured</h3>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Your progress is saved across the cosmos. Return to the galaxy to chart the next star.
+            You answered {quizCorrect} of {totalQuiz} correctly. Your progress is saved across the cosmos.
           </p>
           <Button
             onClick={() => navigate({ to: "/galaxy/$galaxyId", params: { galaxyId } })}
@@ -240,48 +332,13 @@ function LessonScreen() {
   );
 }
 
-function StepBlock({
-  step,
-  stepNumber,
-  totalSteps,
-  onAnswered,
-  onContinue,
-}: {
-  step: Lesson["steps"][number];
-  stepNumber: number;
-  totalSteps: number;
-  onAnswered: (correct: boolean, selected: number) => void;
-  onContinue: () => void;
-}) {
-  return (
-    <section className="animate-float-up space-y-4">
-      <div className="glass space-y-3 rounded-2xl p-5 sm:p-6">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-widest text-primary">
-            Step {stepNumber} of {totalSteps}
-          </span>
-        </div>
-        <h2 className="font-display text-lg font-bold text-foreground">{step.title}</h2>
-        <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-          {step.explanation}
-        </p>
-      </div>
-      <MCQCard
-        question={step.question}
-        onAnswered={onAnswered}
-        onContinue={onContinue}
-        continueLabel={stepNumber === totalSteps ? "On to practice" : "Next step"}
-      />
-    </section>
-  );
-}
-
 function LessonShell({
   galaxy,
   star,
   alreadyDone,
   onBack,
   onAskNova,
+  novaBadge,
   children,
 }: {
   galaxy: Galaxy;
@@ -289,6 +346,7 @@ function LessonShell({
   alreadyDone?: boolean;
   onBack: () => void;
   onAskNova?: () => void;
+  novaBadge?: string;
   children: React.ReactNode;
 }) {
   const difficultyClass = useMemo(() => {
@@ -314,6 +372,11 @@ function LessonShell({
         {onAskNova && (
           <Button variant="secondary" size="sm" onClick={onAskNova} className="gap-1.5">
             <Bot className="h-4 w-4 text-cyan" /> Ask Nova
+            {novaBadge && (
+              <span className="ml-1 rounded-full bg-cyan/15 px-2 py-0.5 text-[10px] font-semibold text-cyan">
+                {novaBadge}
+              </span>
+            )}
           </Button>
         )}
       </div>

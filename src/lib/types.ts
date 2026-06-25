@@ -40,14 +40,18 @@ export interface MCQ {
 
 export interface LessonStep {
   title: string;
-  explanation: string; // teaches ONE idea
-  question: MCQ;
+  explanation: string; // teaches ONE idea with depth
+  /** Optional inline checkpoint question (a few steps may have one). */
+  question?: MCQ;
 }
 
 export interface Lesson {
   coreIdea: string;
   steps: LessonStep[];
-  practice: MCQ;
+  /** Optional single warmup mini-practice kept for back-compat. */
+  practice?: MCQ;
+  /** Full 10-question quiz administered after all teaching steps. */
+  quiz: MCQ[];
   summary: string;
 }
 
@@ -76,5 +80,6 @@ export interface GarageItem {
   description: string;
   price: number; // in IC
   rarity: "Standard" | "Rare" | "Legendary";
-  swatch: string; // gradient or color
+  swatch: string; // gradient or color (fallback)
+  image?: string; // imported asset URL
 }

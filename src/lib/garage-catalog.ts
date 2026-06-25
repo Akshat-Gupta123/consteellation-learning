@@ -1,4 +1,31 @@
 import type { GarageItem, GarageSlot } from "./types";
+import suit_basic from "@/assets/garage/suit_basic.jpg";
+import suit_aurora from "@/assets/garage/suit_aurora.jpg";
+import suit_solarflare from "@/assets/garage/suit_solarflare.jpg";
+import helmet_basic from "@/assets/garage/helmet_basic.jpg";
+import helmet_visor from "@/assets/garage/helmet_visor.jpg";
+import helmet_nova from "@/assets/garage/helmet_nova.jpg";
+import ship_basic from "@/assets/garage/ship_basic.jpg";
+import ship_orbit from "@/assets/garage/ship_orbit.jpg";
+import ship_starforge from "@/assets/garage/ship_starforge.jpg";
+import effect_none from "@/assets/garage/effect_none.jpg";
+import effect_stardust from "@/assets/garage/effect_stardust.jpg";
+import effect_supernova from "@/assets/garage/effect_supernova.jpg";
+
+const IMG: Record<string, string> = {
+  suit_basic,
+  suit_aurora,
+  suit_solarflare,
+  helmet_basic,
+  helmet_visor,
+  helmet_nova,
+  ship_basic,
+  ship_orbit,
+  ship_starforge,
+  effect_none,
+  effect_stardust,
+  effect_supernova,
+};
 
 /**
  * The Space Garage cosmetic catalog. Items are referenced by id from the
@@ -11,6 +38,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   // Suits
   {
     id: "suit_basic",
+    image: IMG.suit_basic,
     slot: "suit",
     name: "Cadet Suit",
     description: "Standard issue navy thermal weave. Reliable.",
@@ -20,6 +48,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   },
   {
     id: "suit_aurora",
+    image: IMG.suit_aurora,
     slot: "suit",
     name: "Aurora Suit",
     description: "Shimmering panels echo distant nebulae.",
@@ -29,6 +58,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   },
   {
     id: "suit_solarflare",
+    image: IMG.suit_solarflare,
     slot: "suit",
     name: "Solar Flare Suit",
     description: "Reactive heat-shield plates pulse with light.",
@@ -40,6 +70,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   // Helmets
   {
     id: "helmet_basic",
+    image: IMG.helmet_basic,
     slot: "helmet",
     name: "Cadet Helmet",
     description: "Single-visor learner's helmet.",
@@ -49,6 +80,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   },
   {
     id: "helmet_visor",
+    image: IMG.helmet_visor,
     slot: "helmet",
     name: "Wideband Visor",
     description: "Panoramic HUD with constellation overlay.",
@@ -58,6 +90,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   },
   {
     id: "helmet_nova",
+    image: IMG.helmet_nova,
     slot: "helmet",
     name: "Nova Crown",
     description: "Iridescent halo channels Nova's signal.",
@@ -69,6 +102,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   // Ships
   {
     id: "ship_basic",
+    image: IMG.ship_basic,
     slot: "ship",
     name: "Scout Glider",
     description: "Single-seat training glider. Quick and quiet.",
@@ -78,6 +112,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   },
   {
     id: "ship_orbit",
+    image: IMG.ship_orbit,
     slot: "ship",
     name: "Orbit Runner",
     description: "Twin-thruster ship for long-haul learning runs.",
@@ -87,6 +122,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   },
   {
     id: "ship_starforge",
+    image: IMG.ship_starforge,
     slot: "ship",
     name: "Starforge Cruiser",
     description: "Capital-class cruiser with constellation drive.",
@@ -98,6 +134,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   // Effects
   {
     id: "effect_none",
+    image: IMG.effect_none,
     slot: "effect",
     name: "No Effect",
     description: "A clean cockpit. Pure focus.",
@@ -107,6 +144,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   },
   {
     id: "effect_stardust",
+    image: IMG.effect_stardust,
     slot: "effect",
     name: "Stardust Trail",
     description: "Leaves a soft trail of stardust behind your ship.",
@@ -116,6 +154,7 @@ export const GARAGE_ITEMS: GarageItem[] = [
   },
   {
     id: "effect_supernova",
+    image: IMG.effect_supernova,
     slot: "effect",
     name: "Supernova Burst",
     description: "A radiant burst plays on lesson completion.",

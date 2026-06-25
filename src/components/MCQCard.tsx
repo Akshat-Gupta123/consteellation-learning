@@ -3,6 +3,7 @@ import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MCQ } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { playCorrect, playWrong } from "@/lib/sfx";
 
 interface MCQCardProps {
   question: MCQ;
@@ -36,9 +37,11 @@ export function MCQCard({ question, onAnswered, onContinue, continueLabel = "Con
     if (correct) {
       if (solvedFirstTry === null) setSolvedFirstTry(nextAttempts === 1);
       setSolved(true);
+      playCorrect();
       onAnswered?.(true, selected);
     } else {
       if (solvedFirstTry === null) setSolvedFirstTry(false);
+      playWrong();
       onAnswered?.(false, selected);
     }
   }
