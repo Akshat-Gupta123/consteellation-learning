@@ -21,12 +21,13 @@ const LessonSchema = z.object({
       z.object({
         title: z.string().min(1),
         explanation: z.string().min(1),
-        question: MCQSchema,
+        question: MCQSchema.optional(),
       }),
     )
-    .min(2)
-    .max(5),
-  practice: MCQSchema,
+    .min(3)
+    .max(6),
+  practice: MCQSchema.optional(),
+  quiz: z.array(MCQSchema).min(8).max(12),
   summary: z.string().min(1),
 });
 
@@ -63,6 +64,7 @@ export const getOrGenerateLesson = createServerFn({ method: "POST" })
     if (cached.data?.content) {
       const parsed = LessonSchema.safeParse(cached.data.content);
       if (parsed.success) return parsed.data;
+      // schema migrated → regenerate
     }
 
     // Load galaxy/star for grounding
@@ -90,33 +92,35 @@ export const getOrGenerateLesson = createServerFn({ method: "POST" })
       model: gateway("google/gemini-3-flash-preview"),
       system: [
         "You are Nova, the lesson author for Constellation — a Brilliant-style learning platform.",
-        "Author ONE interactive lesson for a single star. Respond with ONE JSON object, no markdown, no commentary.",
+        "Author ONE interactive lesson for a single star. The learner LEARNS FIRST, then takes a quiz.",
+        "Respond with ONE JSON object, no markdown, no commentary.",
         "",
         "JSON shape:",
         "{",
-        '  "coreIdea": string,              // 3-5 lines, intuitive, no textbook language',
-        '  "steps": [                        // 3-4 guided steps, each teaching ONE small idea',
+        '  "coreIdea": string,              // 5-8 sentences. A rich, intuitive overview of why this idea matters and the big picture. Use plain language, analogies welcome.',
+        '  "steps": [                        // 3-5 TEACHING steps. Each step teaches ONE focused idea in depth.',
         "    {",
         '      "title": string,',
-        '      "explanation": string,        // 2-5 sentences teaching ONE idea',
-        '      "question": {                 // a thinking MCQ at the END of the step',
-        '        "stem": string,             // the question',
+        '      "explanation": string,        // 4-8 sentences. Real teaching: definitions, an example or analogy, why it works, common pitfalls. Use newlines to separate paragraphs for readability.',
+        '      "question": {                 // OPTIONAL inline checkpoint. Include for ~half the steps (skip the rest, omit the field entirely). Use to keep learner active mid-lesson.',
+        '        "stem": string,',
         '        "options": [string, string, string, string],',
         '        "correctIndex": number,    // 0-3',
-        '        "correctExplanation": string,  // why the correct option is right',
-        '        "wrongExplanations": [string,string,string,string] // why each wrong option is wrong; "" for the correct index',
+        '        "correctExplanation": string,',
+        '        "wrongExplanations": [string,string,string,string]',
         "      }",
         "    }",
         "  ],",
-        '  "practice": { ...MCQ },           // ONE simple application question, same shape',
-        '  "summary": string                  // 2-3 line reinforcement of the learning outcome',
+        '  "quiz": [ ...MCQ, ... ],         // EXACTLY 10 MCQs covering the whole lesson, mixed difficulty, ordered easier → harder. This is the final assessment after all teaching.',
+        '  "summary": string                  // 3-5 sentences reinforcing the learning outcome and what to remember.',
         "}",
         "",
         "Rules:",
-        "- ALL questions MUST be multiple choice with 3-4 options. Never ask for typed input.",
-        "- Each step must feel like DISCOVERY — explain one idea, then ask a guiding question.",
-        "- correctExplanation must reinforce the reasoning. wrongExplanations must identify the misconception and gently correct it.",
-        "- Avoid heavy calculation. Favor reasoning, intuition, and pattern recognition.",
+        "- LEARNING FIRST. Steps must teach with substance — do not turn every step into a quiz.",
+        "- The 10-question quiz comes AFTER all teaching. Quiz questions should test understanding, not memorization.",
+        "- Every MCQ has 3-4 options. Never ask for typed input.",
+        "- correctExplanation reinforces the reasoning. wrongExplanations identify the misconception and gently correct it. Use \"\" for the correct option's slot.",
+        "- Favor reasoning, intuition, and pattern recognition over heavy calculation.",
         "- Tone: precise, futuristic, educational. Never childish.",
       ].join("\n"),
       prompt: [
@@ -124,7 +128,7 @@ export const getOrGenerateLesson = createServerFn({ method: "POST" })
         prevTitles.length ? `Prerequisite stars already covered: ${prevTitles.join(", ")}.` : "",
         `Star to teach: "${star.title}". Preview: ${star.explanation}`,
         `Star difficulty: ${star.difficulty}. ${star.isBoss ? "This is the FINAL CHALLENGE — synthesize the whole galaxy." : ""}`,
-        "Author the full lesson JSON now.",
+        "Author the full lesson JSON now. Remember: rich teaching steps first, then a 10-question quiz.",
       ]
         .filter(Boolean)
         .join("\n"),
@@ -191,7 +195,6 @@ export const completeStar = createServerFn({ method: "POST" })
       newBalance: number;
       galaxyComplete: boolean;
     }> => {
-      // Validate the star belongs to a galaxy the user owns + count total
       const { data: gx, error: gxErr } = await context.supabase
         .from("galaxies")
         .select("id, stars")
@@ -229,14 +232,13 @@ export const completeStar = createServerFn({ method: "POST" })
           completed_stars: completed,
         });
 
-      // bump IC
       let newBalance = 0;
       const { data: prof } = await context.supabase
         .from("profiles")
         .select("ic")
         .eq("id", context.userId)
-        .maybeSingle();
-      newBalance = prof?.ic ?? 0;
+        .maybeSingle;
+      newBalance = (prof as { ic?: number } | null)?.ic ?? 0;
       if (awardedIC > 0) {
         newBalance += awardedIC;
         await context.supabase
