@@ -1,16 +1,19 @@
 import type { GarageItem, GarageSlot } from "./types";
-import suit_basic from "@/assets/garage/suit_basic.jpg";
-import suit_aurora from "@/assets/garage/suit_aurora.jpg";
-import suit_solarflare from "@/assets/garage/suit_solarflare.jpg";
-import helmet_basic from "@/assets/garage/helmet_basic.jpg";
-import helmet_visor from "@/assets/garage/helmet_visor.jpg";
-import helmet_nova from "@/assets/garage/helmet_nova.jpg";
-import ship_basic from "@/assets/garage/ship_basic.jpg";
-import ship_orbit from "@/assets/garage/ship_orbit.jpg";
-import ship_starforge from "@/assets/garage/ship_starforge.jpg";
-import effect_none from "@/assets/garage/effect_none.jpg";
-import effect_stardust from "@/assets/garage/effect_stardust.jpg";
-import effect_supernova from "@/assets/garage/effect_supernova.jpg";
+import suit_basic from "@/assets/garage/suit_basic.png";
+import suit_aurora from "@/assets/garage/suit_aurora.png";
+import suit_solarflare from "@/assets/garage/suit_solarflare.png";
+import helmet_basic from "@/assets/garage/helmet_basic.png";
+import helmet_visor from "@/assets/garage/helmet_visor.png";
+import helmet_nova from "@/assets/garage/helmet_nova.png";
+import ship_basic from "@/assets/garage/ship_basic.png";
+import ship_orbit from "@/assets/garage/ship_orbit.png";
+import ship_starforge from "@/assets/garage/ship_starforge.png";
+import effect_stardust from "@/assets/garage/effect_stardust.png";
+import effect_supernova from "@/assets/garage/effect_supernova.png";
+
+// 1x1 transparent pixel for the "no effect" item
+const effect_none =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 
 const IMG: Record<string, string> = {
   suit_basic,
