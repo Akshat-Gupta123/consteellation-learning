@@ -52,6 +52,15 @@ export function NovaPanel({ open, onClose, galaxyName, star, previousStars, curr
           previousStars,
           hintLevel: level,
           history,
+          currentQuestion: currentQuestion
+            ? {
+                stem: currentQuestion.mcq.stem,
+                options: currentQuestion.mcq.options,
+                phase: currentQuestion.phase,
+                index: currentQuestion.index,
+                total: currentQuestion.total,
+              }
+            : undefined,
           message: text.trim(),
         },
       });
