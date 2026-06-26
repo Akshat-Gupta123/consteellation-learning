@@ -96,6 +96,11 @@ function GaragePage() {
     equipMutation.mutate(item.id);
   }
 
+  const equippedSuit = getItem(profile.avatar.suit);
+  const equippedHelmet = getItem(profile.avatar.helmet);
+  const equippedShip = getItem(profile.avatar.ship);
+  const equippedEffect = getItem(profile.avatar.effect);
+
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-5 py-6">
       <header className="space-y-1">
@@ -106,6 +111,93 @@ function GaragePage() {
           Customize your suit, helmet, ship and effects. Items save to your account and follow you across devices.
         </p>
       </header>
+
+      {/* Ship + Spaceman live preview */}
+      <section className="glass relative overflow-hidden rounded-2xl p-5 sm:p-6">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Your Pilot &amp; Ship
+        </h2>
+        <div
+          className="relative grid grid-cols-2 gap-4 rounded-xl p-4 sm:p-6"
+          style={{
+            background:
+              "radial-gradient(circle at 30% 30%, rgba(124,58,237,0.25), transparent 60%), radial-gradient(circle at 80% 70%, rgba(14,165,233,0.25), transparent 60%), linear-gradient(135deg,#05060f,#0f172a)",
+          }}
+        >
+          {/* twinkling stars */}
+          <div className="pointer-events-none absolute inset-0 opacity-60">
+            {Array.from({ length: 18 }).map((_, i) => (
+              <span
+                key={i}
+                className="absolute h-0.5 w-0.5 rounded-full bg-white animate-pulse"
+                style={{
+                  top: `${(i * 53) % 100}%`,
+                  left: `${(i * 37) % 100}%`,
+                  animationDelay: `${(i % 6) * 0.3}s`,
+                  animationDuration: `${1.5 + (i % 4) * 0.4}s`,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Spaceman (suit + helmet) */}
+          <div className="relative z-10 flex flex-col items-center justify-end gap-2">
+            <div className="relative h-40 w-32 sm:h-56 sm:w-44">
+              {equippedHelmet?.image && (
+                <img
+                  src={equippedHelmet.image}
+                  alt={equippedHelmet.name}
+                  className="absolute left-1/2 top-0 h-16 w-16 -translate-x-1/2 rounded-full object-cover ring-2 ring-cyan/40 sm:h-24 sm:w-24"
+                />
+              )}
+              {equippedSuit?.image && (
+                <img
+                  src={equippedSuit.image}
+                  alt={equippedSuit.name}
+                  className="absolute bottom-0 left-1/2 h-28 w-28 -translate-x-1/2 rounded-2xl object-cover ring-2 ring-primary/40 sm:h-40 sm:w-40"
+                />
+              )}
+            </div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Pilot
+            </p>
+          </div>
+
+          {/* Ship + effect */}
+          <div className="relative z-10 flex flex-col items-center justify-end gap-2">
+            <div className="relative h-40 w-full sm:h-56">
+              {/* animated effect trail */}
+              <div className="absolute inset-0 -z-0 overflow-hidden rounded-2xl">
+                <div
+                  className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl opacity-70 animate-pulse sm:h-56 sm:w-56"
+                  style={{
+                    background: equippedEffect?.swatch ?? "transparent",
+                    animationDuration: "2.5s",
+                  }}
+                />
+                <div
+                  className="absolute -bottom-2 left-1/2 h-3 w-24 -translate-x-1/2 rounded-full blur-md sm:w-36"
+                  style={{
+                    background: equippedEffect?.swatch ?? "linear-gradient(90deg,#22d3ee,#a855f7)",
+                    animation: "pulse 1.4s ease-in-out infinite",
+                  }}
+                />
+              </div>
+              {equippedShip?.image && (
+                <img
+                  src={equippedShip.image}
+                  alt={equippedShip.name}
+                  className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-2xl object-contain drop-shadow-[0_0_24px_rgba(59,130,246,0.55)] sm:h-52 sm:w-52"
+                  style={{ animation: "float 3.5s ease-in-out infinite" }}
+                />
+              )}
+            </div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Ship · {equippedEffect?.name ?? "No effect"}
+            </p>
+          </div>
+        </div>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         {/* Loadout / drop zone */}
