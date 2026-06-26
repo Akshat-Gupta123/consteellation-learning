@@ -18,7 +18,7 @@ interface NovaPanelProps {
 
 const HINT_LABELS = ["Gentle nudge", "Go deeper", "Walk me through it"];
 
-export function NovaPanel({ open, onClose, galaxyName, star, previousStars }: NovaPanelProps) {
+export function NovaPanel({ open, onClose, galaxyName, star, previousStars, currentQuestion }: NovaPanelProps) {
   const ask = useServerFn(askNova);
   const [messages, setMessages] = useState<NovaMessage[]>([]);
   const [input, setInput] = useState("");
