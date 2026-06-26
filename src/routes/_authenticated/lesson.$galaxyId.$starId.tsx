@@ -327,12 +327,33 @@ function LessonScreen() {
         </section>
       )}
 
+      {canAskNovaNow && (
+        <button
+          onClick={openNova}
+          aria-label="Ask Nova"
+          className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full border border-cyan/40 bg-sidebar/95 px-5 py-3 shadow-2xl backdrop-blur transition-transform hover:scale-105 sm:bottom-8 sm:right-8 sm:px-6 sm:py-4 glow-primary"
+        >
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-cyan/15 text-cyan sm:h-11 sm:w-11">
+            <Bot className="h-5 w-5 sm:h-6 sm:w-6" />
+          </span>
+          <span className="flex flex-col items-start leading-tight">
+            <span className="font-display text-sm font-bold sm:text-base">Ask Nova</span>
+            {phase === "quiz" && (
+              <span className="text-[10px] text-muted-foreground sm:text-xs">
+                {novaUsesLeft}/{NOVA_QUIZ_LIMIT} hints left
+              </span>
+            )}
+          </span>
+        </button>
+      )}
+
       <NovaPanel
         open={novaOpen}
         onClose={() => setNovaOpen(false)}
         galaxyName={galaxy.name}
         star={star}
         previousStars={previousStars}
+        currentQuestion={currentQuestion}
       />
     </LessonShell>
   );
