@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Constellation turns any topic into a visual star-map learning journey, powered by the Nova AI tutor.",
       },
       { name: "author", content: "Constellation" },
-      { property: "og:title", content: "Constellation — AI Star-Map Learning" },
+      { property: "og:title", content: "Constellation — Explore Knowledge, One Star at a Time" },
       {
         property: "og:description",
         content:
@@ -94,6 +94,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Constellation — Explore Knowledge, One Star at a Time" },
+      { name: "description", content: "Constellation is an AI-powered learning platform that visualizes any topic as a star-map journey." },
+      { property: "og:description", content: "Constellation is an AI-powered learning platform that visualizes any topic as a star-map journey." },
+      { name: "twitter:description", content: "Constellation is an AI-powered learning platform that visualizes any topic as a star-map journey." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9a361ca6-6427-453f-866d-ca961f81e021/id-preview-7abdcd89--bfac7a1e-56fb-4cdc-9b3c-4c463f6856b6.lovable.app-1782487672538.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9a361ca6-6427-453f-866d-ca961f81e021/id-preview-7abdcd89--bfac7a1e-56fb-4cdc-9b3c-4c463f6856b6.lovable.app-1782487672538.png" },
     ],
     links: [
       {
