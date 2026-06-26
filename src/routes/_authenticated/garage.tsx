@@ -145,11 +145,11 @@ function GaragePage() {
                   )}
                 >
                   <div
-                    className="mb-2 grid h-20 w-full place-items-center overflow-hidden rounded-lg text-xs text-white/80"
+                    className="mb-2 grid h-32 w-full place-items-center overflow-hidden rounded-lg text-xs text-white/80 sm:h-36"
                     style={{ background: item?.swatch ?? "linear-gradient(135deg,#0f172a,#1e293b)" }}
                   >
                     {item?.image ? (
-                      <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                      <img src={item.image} alt={item.name} className="h-full w-full object-contain" />
                     ) : (
                       <Sparkles className="h-5 w-5 opacity-80" />
                     )}
