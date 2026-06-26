@@ -140,6 +140,7 @@ export const getOrGenerateLesson = createServerFn({ method: "POST" })
     } catch {
       throw new Error("Nova returned malformed lesson data. Please try again.");
     }
+    normalizeLessonShape(parsed);
     const lesson = LessonSchema.parse(parsed);
 
     // Cache (best effort)
