@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { CosmicBackdrop } from "@/components/CosmicBackdrop";
 
 function NotFoundComponent() {
   return (
@@ -137,6 +138,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <div className="cosmic-bg" aria-hidden="true" />
       <div className="starfield" aria-hidden="true" />
+      <CosmicBackdrop />
       {showCornerLogo && (
         <Link
           to="/"

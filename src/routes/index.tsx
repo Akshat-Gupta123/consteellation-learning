@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button";
 import { ConstellationMark } from "@/components/ConstellationMark";
 import { useAuth } from "@/hooks/use-auth";
 
+import galaxyPink from "@/assets/galaxy-pink.png";
+import galaxyBlue from "@/assets/galaxy-blue.png";
+import galaxyAmber from "@/assets/galaxy-amber.png";
+import galaxyGreen from "@/assets/galaxy-green.png";
+import galaxyViolet from "@/assets/galaxy-violet.png";
+import galaxyGold from "@/assets/galaxy-gold.png";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -22,14 +29,22 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-// Deterministic positions / colours for galaxy nodes
-const GALAXY_PALETTES = [
-  ["#f472b6", "#a855f7"], // pink → purple
-  ["#22d3ee", "#3b82f6"], // cyan → blue
-  ["#f59e0b", "#ef4444"], // amber → red
-  ["#34d399", "#06b6d4"], // green → cyan
-  ["#a78bfa", "#ec4899"], // violet → pink
-  ["#fde047", "#f97316"], // yellow → orange
+const GALAXY_IMAGES = [
+  galaxyPink,
+  galaxyBlue,
+  galaxyAmber,
+  galaxyGreen,
+  galaxyViolet,
+  galaxyGold,
+] as const;
+
+const GALAXY_ACCENTS = [
+  "#f472b6",
+  "#22d3ee",
+  "#f59e0b",
+  "#34d399",
+  "#a78bfa",
+  "#fde047",
 ] as const;
 
 function hashIndex(seed: string, mod: number) {
@@ -38,90 +53,115 @@ function hashIndex(seed: string, mod: number) {
   return Math.abs(h) % mod;
 }
 
-function GalaxyNode({
-  galaxy,
-  index,
+// Web-graph layout: positions are in % within a fixed-aspect SVG/HTML canvas.
+// Deterministic per index — first node centered, rest on rings.
+function webPosition(i: number, total: number) {
+  if (total === 1) return { x: 50, y: 50 };
+  // Ring layout, offset per ring
+  const ringSize = 6;
+  const ring = Math.floor((i) / ringSize);
+  const inRing = i % ringSize;
+  const perRing = Math.min(ringSize, total - ring * ringSize);
+  const radius = 22 + ring * 18; // % from center
+  const angle = (inRing / perRing) * Math.PI * 2 + ring * 0.4;
+  return {
+    x: 50 + Math.cos(angle) * radius,
+    y: 50 + Math.sin(angle) * radius * 0.78, // squashed vertically
+  };
+}
+
+function GalaxyWeb({
+  galaxies,
   onDelete,
 }: {
-  galaxy: Galaxy;
-  index: number;
+  galaxies: Galaxy[];
   onDelete: (id: string) => void;
 }) {
-  const [c1, c2] = GALAXY_PALETTES[hashIndex(galaxy.id, GALAXY_PALETTES.length)];
-  const size = 96 + (galaxy.stars.length % 5) * 8; // 96–128px
-  const rotate = (index * 37) % 360;
+  const positions = galaxies.map((_, i) => webPosition(i, galaxies.length));
 
   return (
-    <li className="group relative flex flex-col items-center text-center">
-      <Link
-        to="/galaxy/$galaxyId"
-        params={{ galaxyId: galaxy.id }}
-        className="block"
-        aria-label={`Open ${galaxy.name}`}
+    <div className="relative mx-auto aspect-[16/10] w-full max-w-4xl">
+      {/* connecting lines: complete graph */}
+      <svg
+        className="absolute inset-0 h-full w-full"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        aria-hidden="true"
       >
-        <div
-          className="relative transition-transform duration-300 group-hover:scale-110"
-          style={{ width: size, height: size }}
-        >
-          {/* outer glow */}
+        {positions.map((a, i) =>
+          positions.slice(i + 1).map((b, j) => (
+            <line
+              key={`${i}-${j}`}
+              x1={a.x}
+              y1={a.y}
+              x2={b.x}
+              y2={b.y}
+              stroke="white"
+              strokeWidth="0.15"
+              strokeDasharray="0.6 0.8"
+              style={{
+                opacity: 0.25,
+                animation: `line-pulse ${4 + ((i + j) % 5)}s ease-in-out infinite`,
+                animationDelay: `${(i + j) * 0.3}s`,
+              }}
+            />
+          ))
+        )}
+      </svg>
+
+      {galaxies.map((g, i) => {
+        const pos = positions[i];
+        const imgIdx = hashIndex(g.id, GALAXY_IMAGES.length);
+        const img = GALAXY_IMAGES[imgIdx];
+        const accent = GALAXY_ACCENTS[imgIdx];
+        const size = 110 + (g.stars.length % 4) * 14; // 110-152px
+        return (
           <div
-            className="absolute inset-0 rounded-full blur-2xl opacity-60 animate-pulse"
-            style={{
-              background: `radial-gradient(circle, ${c1}66, transparent 70%)`,
-              animationDuration: "3.5s",
-            }}
-          />
-          {/* spiral disk */}
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: `conic-gradient(from ${rotate}deg, ${c1}, ${c2}, ${c1})`,
-              maskImage:
-                "radial-gradient(circle, black 38%, rgba(0,0,0,0.55) 55%, transparent 72%)",
-              WebkitMaskImage:
-                "radial-gradient(circle, black 38%, rgba(0,0,0,0.55) 55%, transparent 72%)",
-              filter: "blur(1px)",
-            }}
-          />
-          {/* core */}
-          <div
-            className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
-            style={{ boxShadow: `0 0 18px 4px ${c1}` }}
-          />
-          {/* orbiting stars */}
-          {Array.from({ length: 4 }).map((_, i) => {
-            const angle = (i / 4) * Math.PI * 2 + index;
-            const r = size * 0.45;
-            const x = size / 2 + Math.cos(angle) * r;
-            const y = size / 2 + Math.sin(angle) * r;
-            return (
-              <span
-                key={i}
-                className="absolute h-1 w-1 rounded-full bg-white animate-twinkle"
-                style={{
-                  left: x,
-                  top: y,
-                  animationDelay: `${i * 0.4}s`,
-                }}
+            key={g.id}
+            className="group absolute -translate-x-1/2 -translate-y-1/2"
+            style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+          >
+            <Link
+              to="/galaxy/$galaxyId"
+              params={{ galaxyId: g.id }}
+              aria-label={`Open ${g.name}`}
+              className="relative block"
+              style={{ width: size, height: size }}
+            >
+              <div
+                className="absolute inset-0 rounded-full blur-2xl opacity-60 transition-opacity group-hover:opacity-90"
+                style={{ background: `radial-gradient(circle, ${accent}55, transparent 70%)` }}
               />
-            );
-          })}
-        </div>
-      </Link>
-      <p className="mt-2 line-clamp-2 max-w-[10rem] font-display text-xs font-semibold sm:text-sm">
-        {galaxy.name}
-      </p>
-      <p className="text-[10px] text-muted-foreground">
-        {galaxy.stars.length} stars · {galaxy.difficulty}
-      </p>
-      <button
-        onClick={() => onDelete(galaxy.id)}
-        aria-label={`Delete ${galaxy.name}`}
-        className="absolute -right-1 -top-1 hidden rounded-full border border-white/10 bg-background/80 p-1 text-muted-foreground hover:text-destructive group-hover:block"
-      >
-        <Trash2 className="h-3 w-3" />
-      </button>
-    </li>
+              <img
+                src={img}
+                alt=""
+                width={size}
+                height={size}
+                loading="lazy"
+                draggable={false}
+                className="galaxy-spin-slow relative h-full w-full select-none object-contain transition-transform duration-300 group-hover:scale-110"
+                style={{ animationDuration: `${60 + (i % 5) * 14}s` }}
+              />
+            </Link>
+            <div className="pointer-events-none mt-1 text-center">
+              <p className="line-clamp-1 max-w-[10rem] font-display text-xs font-semibold sm:text-sm">
+                {g.name}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                {g.stars.length} stars · {g.difficulty}
+              </p>
+            </div>
+            <button
+              onClick={() => onDelete(g.id)}
+              aria-label={`Delete ${g.name}`}
+              className="absolute right-0 top-0 hidden rounded-full border border-white/10 bg-background/80 p-1 text-muted-foreground hover:text-destructive group-hover:block"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -163,25 +203,18 @@ function Home() {
           Explore Knowledge, One Star at a Time
         </p>
 
-        {/* Galaxies web */}
         {status === "signedIn" && recent.length > 0 && (
           <section
-            className="animate-float-up mt-10 w-full sm:mt-14"
+            className="animate-float-up mt-8 w-full sm:mt-12"
             style={{ animationDelay: "180ms" }}
           >
-            <h2 className="mb-5 text-center text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground sm:text-xs">
-              Your galaxies
+            <h2 className="mb-3 text-center text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground sm:text-xs">
+              Your galaxy web
             </h2>
-            <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {recent.map((g, i) => (
-                <GalaxyNode
-                  key={g.id}
-                  galaxy={g}
-                  index={i}
-                  onDelete={(id) => deleteMutation.mutate(id)}
-                />
-              ))}
-            </ul>
+            <GalaxyWeb
+              galaxies={recent}
+              onDelete={(id) => deleteMutation.mutate(id)}
+            />
           </section>
         )}
 
@@ -207,8 +240,7 @@ function Home() {
           </div>
         )}
 
-        {/* Generate Galaxy button — sits below the galaxies (not sticky) */}
-        <div className="mt-12 w-full sm:mt-16 flex justify-center">
+        <div className="mt-10 w-full sm:mt-14 flex justify-center">
           <Button
             onClick={handleGenerate}
             size="lg"
@@ -226,3 +258,4 @@ function Home() {
     </main>
   );
 }
+
