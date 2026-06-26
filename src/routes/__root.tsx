@@ -138,6 +138,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <div className="cosmic-bg" aria-hidden="true" />
       <div className="starfield" aria-hidden="true" />
+      <CosmicBackdrop />
       {showCornerLogo && (
         <Link
           to="/"
