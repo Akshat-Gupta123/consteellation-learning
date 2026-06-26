@@ -9,6 +9,15 @@ const AskInput = z.object({
   galaxyName: z.string().default(""),
   previousStars: z.array(z.string()).default([]),
   hintLevel: z.number().int().min(1).max(3).default(1),
+  currentQuestion: z
+    .object({
+      stem: z.string(),
+      options: z.array(z.string()).default([]),
+      phase: z.string().default("quiz"),
+      index: z.number().int().optional(),
+      total: z.number().int().optional(),
+    })
+    .optional(),
   history: z
     .array(
       z.object({
