@@ -118,21 +118,20 @@ function GaragePage() {
           Your Pilot &amp; Ship
         </h2>
         <div
-          className="relative grid grid-cols-2 gap-4 rounded-xl p-4 sm:p-6"
-          style={{
-            background:
-              "radial-gradient(circle at 30% 30%, rgba(124,58,237,0.25), transparent 60%), radial-gradient(circle at 80% 70%, rgba(14,165,233,0.25), transparent 60%), linear-gradient(135deg,#05060f,#0f172a)",
-          }}
+          className="relative overflow-hidden rounded-xl"
+          style={{ background: "radial-gradient(ellipse at top, #0a0a1a 0%, #000000 70%)" }}
         >
           {/* twinkling stars */}
-          <div className="pointer-events-none absolute inset-0 opacity-60">
-            {Array.from({ length: 18 }).map((_, i) => (
+          <div className="pointer-events-none absolute inset-0 opacity-80">
+            {Array.from({ length: 40 }).map((_, i) => (
               <span
                 key={i}
-                className="absolute h-0.5 w-0.5 rounded-full bg-white animate-pulse"
+                className="absolute rounded-full bg-white animate-pulse"
                 style={{
                   top: `${(i * 53) % 100}%`,
                   left: `${(i * 37) % 100}%`,
+                  width: i % 5 === 0 ? "2px" : "1px",
+                  height: i % 5 === 0 ? "2px" : "1px",
                   animationDelay: `${(i % 6) * 0.3}s`,
                   animationDuration: `${1.5 + (i % 4) * 0.4}s`,
                 }}
@@ -140,45 +139,58 @@ function GaragePage() {
             ))}
           </div>
 
-          {/* Spaceman (suit + helmet) */}
-          <div className="relative z-10 flex flex-col items-center justify-end gap-2">
-            <div className="relative h-40 w-32 sm:h-56 sm:w-44">
-              {equippedHelmet?.image && (
-                <img
-                  src={equippedHelmet.image}
-                  alt={equippedHelmet.name}
-                  className="absolute left-1/2 top-0 h-16 w-16 -translate-x-1/2 rounded-full object-cover ring-2 ring-cyan/40 sm:h-24 sm:w-24"
-                />
-              )}
+          {/* Moon / planet in the background */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full sm:-bottom-32 sm:h-96 sm:w-96"
+            style={{
+              background:
+                "radial-gradient(circle at 35% 35%, #d8d4c8 0%, #8b8275 45%, #2a2620 80%, #000 100%)",
+              boxShadow:
+                "inset -20px -30px 60px rgba(0,0,0,0.7), 0 0 80px rgba(180,170,150,0.15)",
+            }}
+          />
+
+          {/* Stage */}
+          <div className="relative z-10 grid grid-cols-[1fr_1.2fr] items-end gap-4 px-4 pt-8 pb-12 sm:gap-8 sm:px-8 sm:pt-12 sm:pb-20">
+            {/* Pilot: suit + helmet on top */}
+            <div className="relative mx-auto h-56 w-40 sm:h-72 sm:w-52">
               {equippedSuit?.image && (
                 <img
                   src={equippedSuit.image}
                   alt={equippedSuit.name}
-                  className="absolute bottom-0 left-1/2 h-28 w-28 -translate-x-1/2 rounded-2xl object-cover ring-2 ring-primary/40 sm:h-40 sm:w-40"
+                  className="absolute bottom-0 left-1/2 h-44 w-36 -translate-x-1/2 rounded-2xl object-cover object-bottom ring-2 ring-primary/40 sm:h-56 sm:w-44"
                 />
               )}
+              {/* Helmet always on top of suit — defaults to basic */}
+              <img
+                src={(equippedHelmet ?? getItem("helmet_basic"))?.image}
+                alt={(equippedHelmet ?? getItem("helmet_basic"))?.name ?? "Helmet"}
+                className="absolute left-1/2 top-0 z-10 h-20 w-20 -translate-x-1/2 rounded-full object-cover ring-2 ring-cyan/50 shadow-[0_0_20px_rgba(34,211,238,0.4)] sm:h-28 sm:w-28"
+              />
             </div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Pilot
-            </p>
-          </div>
 
-          {/* Ship + effect */}
-          <div className="relative z-10 flex flex-col items-center justify-end gap-2">
-            <div className="relative h-40 w-full sm:h-56">
-              {/* animated effect trail */}
-              <div className="absolute inset-0 -z-0 overflow-hidden rounded-2xl">
+            {/* Ship next to pilot, with thrust effect from the back */}
+            <div className="relative mx-auto h-56 w-full sm:h-72">
+              {/* thrust trail behind ship (left side = back) */}
+              <div className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2">
                 <div
-                  className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl opacity-70 animate-pulse sm:h-56 sm:w-56"
+                  className="h-4 w-32 rounded-full blur-md animate-thrust sm:h-6 sm:w-48"
                   style={{
-                    background: equippedEffect?.swatch ?? "transparent",
-                    animationDuration: "2.5s",
+                    background:
+                      equippedEffect && equippedEffect.id !== "effect_none"
+                        ? equippedEffect.swatch
+                        : "linear-gradient(90deg, transparent, #22d3ee, #a855f7)",
                   }}
                 />
                 <div
-                  className="absolute -bottom-2 left-1/2 h-3 w-24 -translate-x-1/2 rounded-full blur-md animate-thrust sm:w-36"
+                  className="mt-1 h-2 w-20 rounded-full blur-sm opacity-70 animate-thrust sm:w-32"
                   style={{
-                    background: equippedEffect?.swatch ?? "linear-gradient(90deg,#22d3ee,#a855f7)",
+                    background:
+                      equippedEffect && equippedEffect.id !== "effect_none"
+                        ? equippedEffect.swatch
+                        : "linear-gradient(90deg, transparent, #f472b6, #22d3ee)",
+                    animationDelay: "0.2s",
                   }}
                 />
               </div>
@@ -186,16 +198,23 @@ function GaragePage() {
                 <img
                   src={equippedShip.image}
                   alt={equippedShip.name}
-                  className="absolute left-1/2 top-1/2 h-36 w-36 animate-ship-bob rounded-2xl object-contain drop-shadow-[0_0_24px_rgba(59,130,246,0.55)] sm:h-52 sm:w-52"
+                  className="absolute right-2 top-1/2 z-10 h-40 w-40 -translate-y-1/2 animate-ship-bob rounded-2xl object-contain drop-shadow-[0_0_24px_rgba(59,130,246,0.55)] sm:h-56 sm:w-56"
                 />
               )}
             </div>
+          </div>
+
+          <div className="relative z-10 grid grid-cols-2 gap-4 px-4 pb-4 text-center sm:px-8">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Pilot
+            </p>
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Ship · {equippedEffect?.name ?? "No effect"}
             </p>
           </div>
         </div>
       </section>
+
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         {/* Loadout / drop zone */}
