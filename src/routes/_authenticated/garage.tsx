@@ -176,10 +176,9 @@ function GaragePage() {
                   }}
                 />
                 <div
-                  className="absolute -bottom-2 left-1/2 h-3 w-24 -translate-x-1/2 rounded-full blur-md sm:w-36"
+                  className="absolute -bottom-2 left-1/2 h-3 w-24 -translate-x-1/2 rounded-full blur-md animate-thrust sm:w-36"
                   style={{
                     background: equippedEffect?.swatch ?? "linear-gradient(90deg,#22d3ee,#a855f7)",
-                    animation: "pulse 1.4s ease-in-out infinite",
                   }}
                 />
               </div>
@@ -187,8 +186,7 @@ function GaragePage() {
                 <img
                   src={equippedShip.image}
                   alt={equippedShip.name}
-                  className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-2xl object-contain drop-shadow-[0_0_24px_rgba(59,130,246,0.55)] sm:h-52 sm:w-52"
-                  style={{ animation: "float 3.5s ease-in-out infinite" }}
+                  className="absolute left-1/2 top-1/2 h-36 w-36 animate-ship-bob rounded-2xl object-contain drop-shadow-[0_0_24px_rgba(59,130,246,0.55)] sm:h-52 sm:w-52"
                 />
               )}
             </div>
