@@ -364,16 +364,12 @@ function LessonShell({
   star,
   alreadyDone,
   onBack,
-  onAskNova,
-  novaBadge,
   children,
 }: {
   galaxy: Galaxy;
   star: Star;
   alreadyDone?: boolean;
   onBack: () => void;
-  onAskNova?: () => void;
-  novaBadge?: string;
   children: React.ReactNode;
 }) {
   const difficultyClass = useMemo(() => {
@@ -396,19 +392,9 @@ function LessonShell({
         >
           <ArrowLeft className="h-4 w-4" /> {galaxy.name}
         </button>
-        {onAskNova && (
-          <Button variant="secondary" size="sm" onClick={onAskNova} className="gap-1.5">
-            <Bot className="h-4 w-4 text-cyan" /> Ask Nova
-            {novaBadge && (
-              <span className="ml-1 rounded-full bg-cyan/15 px-2 py-0.5 text-[10px] font-semibold text-cyan">
-                {novaBadge}
-              </span>
-            )}
-          </Button>
-        )}
       </div>
 
-      <main className="mx-auto max-w-4xl space-y-5 px-5 py-6">
+      <main className="mx-auto max-w-4xl space-y-5 px-5 py-6 pb-32 sm:pb-28">
         <header className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${difficultyClass}`}>
