@@ -41,6 +41,56 @@ function extractJson(text: string): unknown {
   return JSON.parse(t);
 }
 
+type Loose = Record<string, unknown>;
+
+function normalizeMCQ(q: Loose): void {
+  if (typeof q.stem !== "string") {
+    const alt = q.question ?? q.prompt ?? q.text ?? q.q;
+    if (typeof alt === "string") q.stem = alt;
+  }
+  if (typeof q.correctIndex !== "number") {
+    const alt =
+      (q.answerIndex as unknown) ??
+      (q.correct as unknown) ??
+      (q.correctAnswerIndex as unknown) ??
+      (q.answer_index as unknown);
+    if (typeof alt === "number") q.correctIndex = alt;
+    else if (typeof q.answer === "string" && Array.isArray(q.options)) {
+      const i = (q.options as unknown[]).indexOf(q.answer);
+      if (i >= 0) q.correctIndex = i;
+    } else if (typeof q.correctAnswer === "string" && Array.isArray(q.options)) {
+      const i = (q.options as unknown[]).indexOf(q.correctAnswer);
+      if (i >= 0) q.correctIndex = i;
+    }
+  }
+  if (typeof q.correctExplanation !== "string") {
+    const alt = q.explanation ?? q.rationale ?? q.reason ?? q.correct_explanation;
+    if (typeof alt === "string") q.correctExplanation = alt;
+  }
+  if (!Array.isArray(q.wrongExplanations)) {
+    const alt = (q as Loose).wrong_explanations ?? (q as Loose).distractorExplanations;
+    if (Array.isArray(alt)) q.wrongExplanations = alt;
+    else q.wrongExplanations = [];
+  }
+}
+
+function normalizeLessonShape(obj: unknown): void {
+  if (!obj || typeof obj !== "object") return;
+  const o = obj as Loose;
+  if (Array.isArray(o.quiz)) {
+    for (const q of o.quiz) if (q && typeof q === "object") normalizeMCQ(q as Loose);
+  }
+  if (Array.isArray(o.steps)) {
+    for (const s of o.steps) {
+      if (s && typeof s === "object") {
+        const step = s as Loose;
+        if (step.question && typeof step.question === "object") normalizeMCQ(step.question as Loose);
+      }
+    }
+  }
+  if (o.practice && typeof o.practice === "object") normalizeMCQ(o.practice as Loose);
+}
+
 const GetLessonInput = z.object({
   galaxyId: z.string().uuid(),
   starId: z.string().min(1),
