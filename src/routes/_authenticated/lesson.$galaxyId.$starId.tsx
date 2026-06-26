@@ -196,18 +196,24 @@ function LessonScreen() {
 
   const currentStep = lesson.steps[stepIndex];
 
+  const currentQuestion =
+    phase === "quiz"
+      ? { mcq: lesson.quiz[quizIndex], phase: "quiz" as const, index: quizIndex, total: totalQuiz }
+      : phase === "steps" && currentStep?.question
+        ? {
+            mcq: currentStep.question,
+            phase: "step" as const,
+            index: stepIndex,
+            total: lesson.steps.length,
+          }
+        : undefined;
+
   return (
     <LessonShell
       galaxy={galaxy}
       star={star}
       alreadyDone={alreadyDone}
       onBack={() => navigate({ to: "/galaxy/$galaxyId", params: { galaxyId } })}
-      onAskNova={canAskNovaNow ? openNova : undefined}
-      novaBadge={
-        phase === "quiz"
-          ? `${novaUsesLeft}/${NOVA_QUIZ_LIMIT} left`
-          : undefined
-      }
     >
       {phase === "core" && (
         <section className="glass animate-float-up space-y-4 rounded-2xl p-5 sm:p-6">
@@ -321,12 +327,33 @@ function LessonScreen() {
         </section>
       )}
 
+      {canAskNovaNow && (
+        <button
+          onClick={openNova}
+          aria-label="Ask Nova"
+          className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full border border-cyan/40 bg-sidebar/95 px-5 py-3 shadow-2xl backdrop-blur transition-transform hover:scale-105 sm:bottom-8 sm:right-8 sm:px-6 sm:py-4 glow-primary"
+        >
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-cyan/15 text-cyan sm:h-11 sm:w-11">
+            <Bot className="h-5 w-5 sm:h-6 sm:w-6" />
+          </span>
+          <span className="flex flex-col items-start leading-tight">
+            <span className="font-display text-sm font-bold sm:text-base">Ask Nova</span>
+            {phase === "quiz" && (
+              <span className="text-[10px] text-muted-foreground sm:text-xs">
+                {novaUsesLeft}/{NOVA_QUIZ_LIMIT} hints left
+              </span>
+            )}
+          </span>
+        </button>
+      )}
+
       <NovaPanel
         open={novaOpen}
         onClose={() => setNovaOpen(false)}
         galaxyName={galaxy.name}
         star={star}
         previousStars={previousStars}
+        currentQuestion={currentQuestion}
       />
     </LessonShell>
   );
@@ -337,16 +364,12 @@ function LessonShell({
   star,
   alreadyDone,
   onBack,
-  onAskNova,
-  novaBadge,
   children,
 }: {
   galaxy: Galaxy;
   star: Star;
   alreadyDone?: boolean;
   onBack: () => void;
-  onAskNova?: () => void;
-  novaBadge?: string;
   children: React.ReactNode;
 }) {
   const difficultyClass = useMemo(() => {
@@ -369,19 +392,9 @@ function LessonShell({
         >
           <ArrowLeft className="h-4 w-4" /> {galaxy.name}
         </button>
-        {onAskNova && (
-          <Button variant="secondary" size="sm" onClick={onAskNova} className="gap-1.5">
-            <Bot className="h-4 w-4 text-cyan" /> Ask Nova
-            {novaBadge && (
-              <span className="ml-1 rounded-full bg-cyan/15 px-2 py-0.5 text-[10px] font-semibold text-cyan">
-                {novaBadge}
-              </span>
-            )}
-          </Button>
-        )}
       </div>
 
-      <main className="mx-auto max-w-4xl space-y-5 px-5 py-6">
+      <main className="mx-auto max-w-4xl space-y-5 px-5 py-6 pb-32 sm:pb-28">
         <header className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${difficultyClass}`}>

@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import ReactMarkdown from "react-markdown";
 import { Bot, Send, Sparkles, X } from "lucide-react";
 import { askNova } from "@/lib/nova.functions";
-import type { NovaMessage, Star } from "@/lib/types";
+import type { MCQ, NovaMessage, Star } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -13,11 +13,12 @@ interface NovaPanelProps {
   galaxyName: string;
   star: Star;
   previousStars: string[];
+  currentQuestion?: { mcq: MCQ; phase: "step" | "quiz"; index: number; total: number };
 }
 
 const HINT_LABELS = ["Gentle nudge", "Go deeper", "Walk me through it"];
 
-export function NovaPanel({ open, onClose, galaxyName, star, previousStars }: NovaPanelProps) {
+export function NovaPanel({ open, onClose, galaxyName, star, previousStars, currentQuestion }: NovaPanelProps) {
   const ask = useServerFn(askNova);
   const [messages, setMessages] = useState<NovaMessage[]>([]);
   const [input, setInput] = useState("");
@@ -51,6 +52,15 @@ export function NovaPanel({ open, onClose, galaxyName, star, previousStars }: No
           previousStars,
           hintLevel: level,
           history,
+          currentQuestion: currentQuestion
+            ? {
+                stem: currentQuestion.mcq.stem,
+                options: currentQuestion.mcq.options,
+                phase: currentQuestion.phase,
+                index: currentQuestion.index,
+                total: currentQuestion.total,
+              }
+            : undefined,
           message: text.trim(),
         },
       });

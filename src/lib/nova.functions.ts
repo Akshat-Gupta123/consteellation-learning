@@ -9,6 +9,15 @@ const AskInput = z.object({
   galaxyName: z.string().default(""),
   previousStars: z.array(z.string()).default([]),
   hintLevel: z.number().int().min(1).max(3).default(1),
+  currentQuestion: z
+    .object({
+      stem: z.string(),
+      options: z.array(z.string()).default([]),
+      phase: z.string().default("quiz"),
+      index: z.number().int().optional(),
+      total: z.number().int().optional(),
+    })
+    .optional(),
   history: z
     .array(
       z.object({
@@ -42,6 +51,25 @@ export const askNova = createServerFn({ method: "POST" })
       data.lessonExplanation ? `Lesson context: ${data.lessonExplanation}` : "",
       data.previousStars.length
         ? `Prerequisite stars already in this journey: ${data.previousStars.join(", ")}.`
+        : "",
+      data.currentQuestion
+        ? [
+            `THE LEARNER IS CURRENTLY ON THIS ${data.currentQuestion.phase.toUpperCase()} QUESTION` +
+              (data.currentQuestion.index !== undefined && data.currentQuestion.total !== undefined
+                ? ` (${data.currentQuestion.index + 1} of ${data.currentQuestion.total})`
+                : "") +
+              ":",
+            `Question: ${data.currentQuestion.stem}`,
+            data.currentQuestion.options.length
+              ? "Options:\n" +
+                data.currentQuestion.options
+                  .map((o, i) => `  ${String.fromCharCode(65 + i)}. ${o}`)
+                  .join("\n")
+              : "",
+            "Tailor your hint to THIS specific question. Do NOT state which option is correct or reveal the answer; guide the learner's thinking about this exact problem.",
+          ]
+            .filter(Boolean)
+            .join("\n")
         : "",
       "STRICT TUTORING RULES:",
       "- NEVER give the final answer or full solution outright.",
