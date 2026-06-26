@@ -196,18 +196,24 @@ function LessonScreen() {
 
   const currentStep = lesson.steps[stepIndex];
 
+  const currentQuestion =
+    phase === "quiz"
+      ? { mcq: lesson.quiz[quizIndex], phase: "quiz" as const, index: quizIndex, total: totalQuiz }
+      : phase === "steps" && currentStep?.question
+        ? {
+            mcq: currentStep.question,
+            phase: "step" as const,
+            index: stepIndex,
+            total: lesson.steps.length,
+          }
+        : undefined;
+
   return (
     <LessonShell
       galaxy={galaxy}
       star={star}
       alreadyDone={alreadyDone}
       onBack={() => navigate({ to: "/galaxy/$galaxyId", params: { galaxyId } })}
-      onAskNova={canAskNovaNow ? openNova : undefined}
-      novaBadge={
-        phase === "quiz"
-          ? `${novaUsesLeft}/${NOVA_QUIZ_LIMIT} left`
-          : undefined
-      }
     >
       {phase === "core" && (
         <section className="glass animate-float-up space-y-4 rounded-2xl p-5 sm:p-6">
