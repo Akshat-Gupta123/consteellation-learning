@@ -52,6 +52,25 @@ export const askNova = createServerFn({ method: "POST" })
       data.previousStars.length
         ? `Prerequisite stars already in this journey: ${data.previousStars.join(", ")}.`
         : "",
+      data.currentQuestion
+        ? [
+            `THE LEARNER IS CURRENTLY ON THIS ${data.currentQuestion.phase.toUpperCase()} QUESTION` +
+              (data.currentQuestion.index !== undefined && data.currentQuestion.total !== undefined
+                ? ` (${data.currentQuestion.index + 1} of ${data.currentQuestion.total})`
+                : "") +
+              ":",
+            `Question: ${data.currentQuestion.stem}`,
+            data.currentQuestion.options.length
+              ? "Options:\n" +
+                data.currentQuestion.options
+                  .map((o, i) => `  ${String.fromCharCode(65 + i)}. ${o}`)
+                  .join("\n")
+              : "",
+            "Tailor your hint to THIS specific question. Do NOT state which option is correct or reveal the answer; guide the learner's thinking about this exact problem.",
+          ]
+            .filter(Boolean)
+            .join("\n")
+        : "",
       "STRICT TUTORING RULES:",
       "- NEVER give the final answer or full solution outright.",
       "- ONLY give guided hints and teach step-by-step thinking.",
