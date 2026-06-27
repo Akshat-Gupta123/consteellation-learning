@@ -9,6 +9,7 @@ const DEFAULT_AVATAR: AvatarCustomization = {
   helmet: "helmet_basic",
   ship: "ship_basic",
   effect: "effect_none",
+  terrain: "terrain_moon",
 };
 
 function parseAvatar(raw: unknown): AvatarCustomization {
@@ -19,6 +20,7 @@ function parseAvatar(raw: unknown): AvatarCustomization {
       helmet: r.helmet ?? DEFAULT_AVATAR.helmet,
       ship: r.ship ?? DEFAULT_AVATAR.ship,
       effect: r.effect ?? DEFAULT_AVATAR.effect,
+      terrain: r.terrain ?? DEFAULT_AVATAR.terrain,
     };
   }
   return DEFAULT_AVATAR;
