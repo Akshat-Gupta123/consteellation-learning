@@ -35,22 +35,19 @@ export interface MCQ {
   options: string[];
   correctIndex: number;
   correctExplanation: string;
-  wrongExplanations: string[]; // same length as options; entry for the correct one can be ""
+  wrongExplanations: string[];
 }
 
 export interface LessonStep {
   title: string;
-  explanation: string; // teaches ONE idea with depth
-  /** Optional inline checkpoint question (a few steps may have one). */
+  explanation: string;
   question?: MCQ;
 }
 
 export interface Lesson {
   coreIdea: string;
   steps: LessonStep[];
-  /** Optional single warmup mini-practice kept for back-compat. */
   practice?: MCQ;
-  /** Full 10-question quiz administered after all teaching steps. */
   quiz: MCQ[];
   summary: string;
 }
@@ -69,17 +66,33 @@ export interface AvatarCustomization {
   helmet: string;
   ship: string;
   effect: string;
+  terrain: string;
 }
 
-export type GarageSlot = "suit" | "helmet" | "ship" | "effect";
+export type GarageSlot = "suit" | "helmet" | "ship" | "effect" | "terrain";
 
 export interface GarageItem {
   id: string;
   slot: GarageSlot;
   name: string;
   description: string;
-  price: number; // in IC
+  price: number;
   rarity: "Standard" | "Rare" | "Legendary";
-  swatch: string; // gradient or color (fallback)
-  image?: string; // imported asset URL
+  swatch: string;
+  image?: string;
+  /**
+   * Suits only: when true, the suit artwork already contains a helmet,
+   * so the garage preview skips the separate helmet overlay.
+   */
+  includesHelmet?: boolean;
+  /**
+   * 0–1 vertical position of the suit's neck ring inside the PNG, measured
+   * from the TOP. Used to align the helmet so it sits ON the neck ring.
+   */
+  neckY?: number;
+  /**
+   * Helmet only: 0–1 vertical position of the helmet's base (where it meets
+   * the neck) inside the PNG, measured from the TOP.
+   */
+  baseY?: number;
 }

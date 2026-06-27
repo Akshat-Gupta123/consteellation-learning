@@ -5,44 +5,55 @@ import type { MCQ } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { playCorrect, playWrong } from "@/lib/sfx";
 
+const MAX_ATTEMPTS = 2;
+
 interface MCQCardProps {
   question: MCQ;
-  /** Called with isCorrect=true exactly once per card lifetime. Use to award IC. */
-  onAnswered?: (isCorrect: boolean, selectedIndex: number) => void;
-  /** Called when the user presses Continue after seeing feedback. */
+  /**
+   * Fired once per attempt. `attempt` is 1-indexed (1 = first try).
+   * Use it to scale IC (e.g. full on attempt 1, partial on attempt 2).
+   */
+  onAnswered?: (isCorrect: boolean, selectedIndex: number, attempt: number) => void;
+  /** Called when the user presses Continue after the card is resolved. */
   onContinue?: () => void;
   continueLabel?: string;
 }
 
 /**
- * A Brilliant-style MCQ:
- *  - 3-4 options (provided by lesson generator)
- *  - On submit, reveals correctness + explanation
- *  - User can re-try wrong answers (they only earn IC on first-try correct)
- *  - Continue button unlocked only after a correct answer
+ * MCQ with a strict 2-attempt cap.
+ *  - Attempt 1 wrong → can retry once; wrong option stays greyed out.
+ *  - Attempt 2 wrong → card is revealed as "Out of tries" and the
+ *    correct answer is shown. Continue unlocks so the user moves on.
+ *  - First-try correct earns full IC; second-try correct earns less.
  */
 export function MCQCard({ question, onAnswered, onContinue, continueLabel = "Continue" }: MCQCardProps) {
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
-  const [solvedFirstTry, setSolvedFirstTry] = useState<boolean | null>(null);
   const [solved, setSolved] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [wrongPicks, setWrongPicks] = useState<Set<number>>(new Set());
+
+  const outOfTries = !solved && attempts >= MAX_ATTEMPTS;
+  const resolved = solved || outOfTries;
 
   function submit() {
-    if (selected === null) return;
+    if (selected === null || resolved) return;
     const correct = selected === question.correctIndex;
-    setRevealed(true);
     const nextAttempts = attempts + 1;
     setAttempts(nextAttempts);
+    setRevealed(true);
     if (correct) {
-      if (solvedFirstTry === null) setSolvedFirstTry(nextAttempts === 1);
       setSolved(true);
       playCorrect();
-      onAnswered?.(true, selected);
+      onAnswered?.(true, selected, nextAttempts);
     } else {
-      if (solvedFirstTry === null) setSolvedFirstTry(false);
+      setWrongPicks((s) => {
+        const n = new Set(s);
+        n.add(selected);
+        return n;
+      });
       playWrong();
-      onAnswered?.(false, selected);
+      onAnswered?.(false, selected, nextAttempts);
     }
   }
 
@@ -66,31 +77,35 @@ export function MCQCard({ question, onAnswered, onContinue, continueLabel = "Con
         {question.options.map((opt, i) => {
           const isSelected = selected === i;
           const isCorrect = i === question.correctIndex;
-          const showState = revealed && (isSelected || (solved && isCorrect));
+          const wasWrong = wrongPicks.has(i);
+          // After resolution, always reveal the correct answer.
+          const showCorrect = resolved && isCorrect;
+          const showWrong = (revealed && isSelected && !isCorrect) || wasWrong;
+          const isLocked = wasWrong || resolved;
           return (
             <button
               key={i}
               type="button"
-              onClick={() => !revealed && setSelected(i)}
-              disabled={revealed}
+              onClick={() => !isLocked && !revealed && setSelected(i)}
+              disabled={isLocked || revealed}
               className={cn(
                 "flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition-all",
                 !revealed && isSelected && "border-primary bg-primary/10 text-foreground",
-                !revealed && !isSelected && "border-border/60 bg-card/40 hover:border-primary/60 hover:bg-card/60",
-                showState && isCorrect && "border-gold bg-gold/10 text-gold",
-                showState && !isCorrect && "border-destructive bg-destructive/10 text-destructive",
-                revealed && !showState && "opacity-60",
+                !revealed && !isSelected && !wasWrong && "border-border/60 bg-card/40 hover:border-primary/60 hover:bg-card/60",
+                showCorrect && "border-gold bg-gold/10 text-gold",
+                showWrong && "border-destructive bg-destructive/10 text-destructive",
+                wasWrong && !revealed && "opacity-60",
               )}
             >
               <span
                 className={cn(
                   "grid h-6 w-6 shrink-0 place-items-center rounded-full border text-xs font-semibold",
-                  !revealed && "border-current",
-                  showState && isCorrect && "border-gold bg-gold/20",
-                  showState && !isCorrect && "border-destructive bg-destructive/20",
+                  !showCorrect && !showWrong && "border-current",
+                  showCorrect && "border-gold bg-gold/20",
+                  showWrong && "border-destructive bg-destructive/20",
                 )}
               >
-                {showState && isCorrect ? <Check className="h-3.5 w-3.5" /> : showState && !isCorrect ? <X className="h-3.5 w-3.5" /> : String.fromCharCode(65 + i)}
+                {showCorrect ? <Check className="h-3.5 w-3.5" /> : showWrong ? <X className="h-3.5 w-3.5" /> : String.fromCharCode(65 + i)}
               </span>
               <span className="flex-1 leading-relaxed">{opt}</span>
             </button>
@@ -102,31 +117,43 @@ export function MCQCard({ question, onAnswered, onContinue, continueLabel = "Con
         <div
           className={cn(
             "mt-4 rounded-xl border p-4 text-sm leading-relaxed",
-            solved && selected === question.correctIndex
+            solved
               ? "border-gold/40 bg-gold/5 text-foreground"
-              : "border-destructive/40 bg-destructive/5 text-foreground",
+              : outOfTries
+                ? "border-destructive/40 bg-destructive/5 text-foreground"
+                : "border-border/60 bg-card/40 text-foreground",
           )}
         >
           <p className="mb-1 font-semibold">
-            {selected === question.correctIndex ? "Correct" : "Not quite"}
+            {solved
+              ? attempts === 1
+                ? "Correct — first try"
+                : "Correct"
+              : outOfTries
+                ? "Out of tries"
+                : "Not quite — one try left"}
           </p>
-          <p className="text-muted-foreground">{explanation}</p>
+          <p className="text-muted-foreground">
+            {outOfTries
+              ? question.correctExplanation
+              : explanation}
+          </p>
         </div>
       )}
 
       <div className="mt-5 flex flex-wrap gap-2">
-        {!revealed && (
+        {!revealed && !resolved && (
           <Button onClick={submit} disabled={selected === null} className="glow-primary">
             Check answer
           </Button>
         )}
-        {revealed && !solved && (
+        {revealed && !solved && !outOfTries && (
           <Button variant="secondary" onClick={tryAgain}>
             Try again
           </Button>
         )}
-        {revealed && solved && (
-          <Button onClick={onContinue} className="glow-gold">
+        {resolved && (
+          <Button onClick={onContinue} className={solved ? "glow-gold" : ""}>
             {continueLabel}
           </Button>
         )}

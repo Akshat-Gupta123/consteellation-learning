@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Rocket, Sparkles, Trash2 } from "lucide-react";
+import { Rocket, Sparkles, Trash2, Trophy } from "lucide-react";
 import { listGalaxies, deleteGalaxyFn } from "@/lib/galaxy.functions";
 import type { Galaxy } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -194,6 +194,22 @@ function Home() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center px-5 py-10 sm:py-14">
+      {status === "signedIn" && (
+        <nav className="absolute right-5 top-5 flex items-center gap-2 text-xs font-semibold sm:right-8 sm:top-8">
+          <Link
+            to="/garage"
+            className="rounded-full border border-border/60 bg-card/50 px-3 py-1.5 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+          >
+            Garage
+          </Link>
+          <Link
+            to="/achievements"
+            className="rounded-full border border-gold/40 bg-gold/10 px-3 py-1.5 text-gold transition-colors hover:bg-gold/20"
+          >
+            <Trophy className="mr-1 inline h-3.5 w-3.5" /> Achievements
+          </Link>
+        </nav>
+      )}
       <div className="flex w-full max-w-5xl flex-1 flex-col items-center">
         <ConstellationMark className="animate-float-up" />
         <p

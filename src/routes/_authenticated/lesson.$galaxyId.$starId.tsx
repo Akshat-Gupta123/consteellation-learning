@@ -137,20 +137,21 @@ function LessonScreen() {
   const canAskNovaNow =
     phase !== "quiz" || novaUsedOnQuestion.has(quizIndex) || novaUsesLeft > 0;
 
-  function handleAnswered(isCorrect: boolean) {
-    if (isCorrect) {
-      awardMutation.mutate(IC_REWARDS.CORRECT_ANSWER);
-    }
+  function handleAnswered(isCorrect: boolean, attempt: number) {
+    if (!isCorrect) return;
+    const amount =
+      attempt === 1 ? IC_REWARDS.CORRECT_FIRST_TRY : IC_REWARDS.CORRECT_SECOND_TRY;
+    awardMutation.mutate(amount);
   }
 
-  function handleStepAnswered(isCorrect: boolean) {
+  function handleStepAnswered(isCorrect: boolean, _i: number, attempt: number) {
     setStepAnswered(true);
-    handleAnswered(isCorrect);
+    handleAnswered(isCorrect, attempt);
   }
 
-  function handleQuizAnswered(isCorrect: boolean) {
-    if (isCorrect) setQuizCorrect((c) => c + 1);
-    handleAnswered(isCorrect);
+  function handleQuizAnswered(isCorrect: boolean, _i: number, attempt: number) {
+    if (isCorrect && attempt === 1) setQuizCorrect((c) => c + 1);
+    handleAnswered(isCorrect, attempt);
   }
 
   function advanceFromStep() {
