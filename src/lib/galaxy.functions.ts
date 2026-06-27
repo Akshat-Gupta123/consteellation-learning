@@ -153,6 +153,19 @@ export const listGalaxies = createServerFn({ method: "POST" })
     return (data ?? []).map(rowToGalaxy);
   });
 
+export const listAllProgress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<GalaxyProgress[]> => {
+    const { data, error } = await context.supabase
+      .from("progress")
+      .select("galaxy_id, completed_stars");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => ({
+      galaxyId: r.galaxy_id as string,
+      completed: (r.completed_stars as string[] | null) ?? [],
+    }));
+  });
+
 export const getGalaxyById = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
