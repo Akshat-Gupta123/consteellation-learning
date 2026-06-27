@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedGarageRouteImport } from './routes/_authenticated/garage'
+import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as AuthenticatedGalaxyGalaxyIdRouteImport } from './routes/_authenticated/galaxy.$galaxyId'
 import { Route as AuthenticatedLessonGalaxyIdStarIdRouteImport } from './routes/_authenticated/lesson.$galaxyId.$starId'
 
@@ -47,6 +48,12 @@ const AuthenticatedGarageRoute = AuthenticatedGarageRouteImport.update({
   path: '/garage',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAchievementsRoute =
+  AuthenticatedAchievementsRouteImport.update({
+    id: '/achievements',
+    path: '/achievements',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGalaxyGalaxyIdRoute =
   AuthenticatedGalaxyGalaxyIdRouteImport.update({
     id: '/galaxy/$galaxyId',
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/generate': typeof GenerateRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/achievements': typeof AuthenticatedAchievementsRoute
   '/garage': typeof AuthenticatedGarageRoute
   '/galaxy/$galaxyId': typeof AuthenticatedGalaxyGalaxyIdRoute
   '/lesson/$galaxyId/$starId': typeof AuthenticatedLessonGalaxyIdStarIdRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/generate': typeof GenerateRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/achievements': typeof AuthenticatedAchievementsRoute
   '/garage': typeof AuthenticatedGarageRoute
   '/galaxy/$galaxyId': typeof AuthenticatedGalaxyGalaxyIdRoute
   '/lesson/$galaxyId/$starId': typeof AuthenticatedLessonGalaxyIdStarIdRoute
@@ -85,6 +94,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/generate': typeof GenerateRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/achievements': typeof AuthenticatedAchievementsRoute
   '/_authenticated/garage': typeof AuthenticatedGarageRoute
   '/_authenticated/galaxy/$galaxyId': typeof AuthenticatedGalaxyGalaxyIdRoute
   '/_authenticated/lesson/$galaxyId/$starId': typeof AuthenticatedLessonGalaxyIdStarIdRoute
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/generate'
     | '/sitemap.xml'
+    | '/achievements'
     | '/garage'
     | '/galaxy/$galaxyId'
     | '/lesson/$galaxyId/$starId'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/generate'
     | '/sitemap.xml'
+    | '/achievements'
     | '/garage'
     | '/galaxy/$galaxyId'
     | '/lesson/$galaxyId/$starId'
@@ -115,6 +127,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/generate'
     | '/sitemap.xml'
+    | '/_authenticated/achievements'
     | '/_authenticated/garage'
     | '/_authenticated/galaxy/$galaxyId'
     | '/_authenticated/lesson/$galaxyId/$starId'
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGarageRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/achievements': {
+      id: '/_authenticated/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AuthenticatedAchievementsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/galaxy/$galaxyId': {
       id: '/_authenticated/galaxy/$galaxyId'
       path: '/galaxy/$galaxyId'
@@ -190,12 +210,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAchievementsRoute: typeof AuthenticatedAchievementsRoute
   AuthenticatedGarageRoute: typeof AuthenticatedGarageRoute
   AuthenticatedGalaxyGalaxyIdRoute: typeof AuthenticatedGalaxyGalaxyIdRoute
   AuthenticatedLessonGalaxyIdStarIdRoute: typeof AuthenticatedLessonGalaxyIdStarIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAchievementsRoute: AuthenticatedAchievementsRoute,
   AuthenticatedGarageRoute: AuthenticatedGarageRoute,
   AuthenticatedGalaxyGalaxyIdRoute: AuthenticatedGalaxyGalaxyIdRoute,
   AuthenticatedLessonGalaxyIdStarIdRoute:
