@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Rocket, Sparkles, Trash2 } from "lucide-react";
+import { Rocket, Sparkles, Trash2, Trophy } from "lucide-react";
 import { listGalaxies, deleteGalaxyFn } from "@/lib/galaxy.functions";
 import type { Galaxy } from "@/lib/types";
 import { Button } from "@/components/ui/button";
