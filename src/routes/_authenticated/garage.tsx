@@ -1,11 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { CheckCircle2, Loader2, Lock, Sparkles } from "lucide-react";
+import { CheckCircle2, Loader2, Lock, Sparkles, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { GARAGE_ITEMS, SLOTS, getItem } from "@/lib/garage-catalog";
-import moonSurface from "@/assets/garage/moon_surface.jpg";
 import {
   equipItem,
   getProfile,
@@ -22,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/garage")({
       { title: "Space Garage — Constellation" },
       {
         name: "description",
-        content: "Customize your suit, helmet, ship and effects in the Space Garage.",
+        content: "Customize your suit, helmet, ship, effects and terrain in the Space Garage.",
       },
     ],
   }),
@@ -97,42 +96,67 @@ function GaragePage() {
     equipMutation.mutate(item.id);
   }
 
-  const equippedSuit = getItem(profile.avatar.suit);
-  const equippedHelmet = getItem(profile.avatar.helmet);
-  const equippedShip = getItem(profile.avatar.ship);
-  const equippedEffect = getItem(profile.avatar.effect);
+  const equippedSuit = getItem(profile.avatar.suit) ?? getItem("suit_basic");
+  const equippedHelmet = getItem(profile.avatar.helmet) ?? getItem("helmet_basic");
+  const equippedShip = getItem(profile.avatar.ship) ?? getItem("ship_basic");
+  const equippedEffect = getItem(profile.avatar.effect) ?? getItem("effect_none");
+  const equippedTerrain = getItem(profile.avatar.terrain) ?? getItem("terrain_moon");
+
+  // Suit + helmet alignment via per-item anchors (% from top of each PNG).
+  const suitNeckY = equippedSuit?.neckY ?? 0.16;
+  const helmetBaseY = equippedHelmet?.baseY ?? 0.92;
+  const showHelmetOverlay = !equippedSuit?.includesHelmet;
+
+  // Pilot box layout (in % of pilot box height):
+  // Suit is 100% of pilot box, anchored to the bottom (feet on ground).
+  // Helmet height = HELMET_PCT * pilot height. Helmet top = (suit neck) - (helmet base inside helmet box).
+  const HELMET_PCT = 0.32;
+  const helmetHeightPct = HELMET_PCT * 100;
+  // Y of helmet TOP, measured from top of pilot box, as %:
+  const helmetTopPct = Math.max(
+    -4,
+    suitNeckY * 100 - helmetBaseY * helmetHeightPct,
+  );
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-5 py-6">
-      <header className="space-y-1">
-        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-          Space Garage
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Customize your suit, helmet, ship and effects. Items save to your account and follow you across devices.
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div className="space-y-1">
+          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+            Space Garage
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Outfit your pilot. Items follow your account across every device.
+          </p>
+        </div>
+        <Link
+          to="/achievements"
+          className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
+        >
+          <Trophy className="h-3.5 w-3.5" /> Achievements
+        </Link>
       </header>
 
-      {/* Ship + Spaceman live preview */}
+      {/* Pilot + Ship live preview */}
       <section className="glass relative overflow-hidden rounded-2xl p-5 sm:p-6">
         <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Your Pilot &amp; Ship
+          Your Pilot &amp; Ship · standing on {equippedTerrain?.name}
         </h2>
         <div
           className="relative overflow-hidden rounded-xl"
-          style={{ background: "linear-gradient(180deg, #000010 0%, #050018 100%)" }}
+          style={{ background: "radial-gradient(ellipse at top, #0b1026 0%, #03030d 70%)" }}
         >
           {/* twinkling stars */}
           <div className="pointer-events-none absolute inset-0 opacity-80">
-            {Array.from({ length: 40 }).map((_, i) => (
+            {Array.from({ length: 50 }).map((_, i) => (
               <span
                 key={i}
                 className="absolute rounded-full bg-white animate-pulse"
                 style={{
-                  top: `${(i * 53) % 60}%`,
+                  top: `${(i * 53) % 55}%`,
                   left: `${(i * 37) % 100}%`,
-                  width: i % 5 === 0 ? "2px" : "1px",
-                  height: i % 5 === 0 ? "2px" : "1px",
+                  width: i % 6 === 0 ? "2px" : "1px",
+                  height: i % 6 === 0 ? "2px" : "1px",
                   animationDelay: `${(i % 6) * 0.3}s`,
                   animationDuration: `${1.5 + (i % 4) * 0.4}s`,
                 }}
@@ -140,41 +164,49 @@ function GaragePage() {
             ))}
           </div>
 
-          {/* Cratered moon surface as the ground */}
-          <img
-            src={moonSurface}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[55%] w-full object-cover object-top"
-          />
+          {/* Equipped terrain as the ground (bottom 38% of stage) */}
+          {equippedTerrain?.image && (
+            <img
+              src={equippedTerrain.image}
+              alt={equippedTerrain.name}
+              aria-hidden="true"
+              loading="lazy"
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[38%] w-full object-cover object-top"
+            />
+          )}
 
-          {/* Stage — characters stand ON the moon surface */}
-          <div className="relative z-10 grid min-h-[22rem] grid-cols-[1fr_1.2fr] items-end gap-4 px-4 pt-8 pb-[12%] sm:min-h-[28rem] sm:gap-8 sm:px-8 sm:pt-12 sm:pb-[10%]">
-            {/* Pilot: suit with helmet sitting on the neck ring */}
-            <div className="relative mx-auto flex h-64 w-40 items-end justify-center sm:h-80 sm:w-52">
-              <div className="relative h-full w-full">
-                {equippedSuit?.image && (
-                  <img
-                    src={equippedSuit.image}
-                    alt={equippedSuit.name}
-                    loading="lazy"
-                    className="absolute bottom-0 left-1/2 h-[78%] -translate-x-1/2 object-contain object-bottom drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
-                  />
-                )}
-                {/* Helmet sits right on the suit's neck ring (top ~22% of pilot box) */}
+          {/* Stage. Ground line sits at bottom of the inner stage region.
+              Pilot's feet touch the ground. Ship hovers just above it. */}
+          <div className="relative z-10 grid min-h-[24rem] grid-cols-[1fr_1.3fr] items-end gap-4 px-4 pt-10 pb-[14%] sm:min-h-[30rem] sm:gap-8 sm:px-8 sm:pt-14 sm:pb-[12%]">
+            {/* Pilot */}
+            <div className="relative mx-auto h-72 w-44 sm:h-96 sm:w-56">
+              {/* Suit fills the whole pilot box, anchored at the bottom */}
+              {equippedSuit?.image && (
                 <img
-                  src={(equippedHelmet ?? getItem("helmet_basic"))?.image}
-                  alt={(equippedHelmet ?? getItem("helmet_basic"))?.name ?? "Helmet"}
+                  src={equippedSuit.image}
+                  alt={equippedSuit.name}
                   loading="lazy"
-                  className="absolute left-1/2 top-0 z-10 h-[30%] -translate-x-1/2 object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]"
+                  className="absolute inset-x-0 bottom-0 z-10 mx-auto h-full w-auto max-w-full object-contain object-bottom drop-shadow-[0_10px_18px_rgba(0,0,0,0.7)]"
                 />
-              </div>
+              )}
+              {/* Helmet — only when the suit is genuinely headless */}
+              {showHelmetOverlay && equippedHelmet?.image && (
+                <img
+                  src={equippedHelmet.image}
+                  alt={equippedHelmet.name}
+                  loading="lazy"
+                  className="absolute left-1/2 z-20 -translate-x-1/2 object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,0.6)]"
+                  style={{
+                    top: `${helmetTopPct}%`,
+                    height: `${helmetHeightPct}%`,
+                  }}
+                />
+              )}
             </div>
 
-            {/* Ship next to pilot, with thrust effect from the back */}
-            <div className="relative mx-auto flex h-64 w-full items-end justify-center sm:h-80">
-              <div className="relative h-[70%] w-full">
+            {/* Ship — hovers ~10% above the ground, with thrust trail behind */}
+            <div className="relative mx-auto h-72 w-full sm:h-96">
+              <div className="absolute inset-x-0 bottom-[18%] mx-auto h-[55%] w-full">
                 {/* thrust trail behind ship (left side = back) */}
                 <div className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2">
                   <div
@@ -211,15 +243,15 @@ function GaragePage() {
 
           <div className="relative z-10 grid grid-cols-2 gap-4 px-4 pb-4 text-center sm:px-8">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-white/70">
-              Pilot
+              {equippedSuit?.name}
+              {showHelmetOverlay && equippedHelmet ? ` · ${equippedHelmet.name}` : ""}
             </p>
             <p className="text-[10px] font-semibold uppercase tracking-widest text-white/70">
-              Ship · {equippedEffect?.name ?? "No effect"}
+              {equippedShip?.name} · {equippedEffect?.name}
             </p>
           </div>
         </div>
       </section>
-
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         {/* Loadout / drop zone */}
@@ -235,9 +267,7 @@ function GaragePage() {
               return (
                 <div
                   key={slot.id}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                  }}
+                  onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault();
                     const id = e.dataTransfer.getData("text/plain") || dragging;
@@ -277,7 +307,7 @@ function GaragePage() {
             })}
           </div>
           <p className="text-xs text-muted-foreground">
-            Tip: drag any owned item from the catalog onto a slot to equip it.
+            Drag an owned item onto its slot — or tap a slot, then Equip.
           </p>
         </section>
 
@@ -318,7 +348,6 @@ function GaragePage() {
                   className={cn(
                     "glass relative space-y-3 rounded-2xl p-4 transition-all",
                     isEquipped && "border-gold/60 glow-gold",
-                    !isOwned && "opacity-95",
                   )}
                 >
                   <div
@@ -348,7 +377,7 @@ function GaragePage() {
 
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-semibold text-gold">
-                      {item.price === 0 ? "Starter" : `${item.price} IC`}
+                      {item.price === 0 ? "Starter" : `${item.price.toLocaleString()} IC`}
                     </span>
                     {isEquipped ? (
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-gold">
