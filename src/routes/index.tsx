@@ -167,14 +167,16 @@ function GalaxyWeb({
 
 function Home() {
   const navigate = useNavigate();
-  const { status } = useAuth();
+  const { user, status } = useAuth();
   const qc = useQueryClient();
   const remove = useServerFn(deleteGalaxyFn);
+  const listGalaxiesFn = useServerFn(listGalaxies);
 
   const galaxiesQuery = useQuery({
-    queryKey: ["galaxies"],
-    queryFn: () => listGalaxies(),
-    enabled: status === "signedIn",
+    queryKey: ["galaxies", user?.id ?? "anon"],
+    queryFn: () => listGalaxiesFn(),
+    enabled: status === "signedIn" && !!user,
+    retry: false,
   });
 
   const deleteMutation = useMutation({
