@@ -47,6 +47,30 @@ export type Database = {
         }
         Relationships: []
       }
+      ic_codes: {
+        Row: {
+          code: string
+          created_at: string
+          used_at: string | null
+          used_by: string | null
+          value: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          used_at?: string | null
+          used_by?: string | null
+          value: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          used_at?: string | null
+          used_by?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           acquired_at: string
@@ -62,6 +86,30 @@ export type Database = {
           acquired_at?: string
           item_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      lesson_codes: {
+        Row: {
+          code: string
+          created_at: string
+          topic: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          topic: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          topic?: string
+          used_at?: string | null
+          used_by?: string | null
         }
         Relationships: []
       }
