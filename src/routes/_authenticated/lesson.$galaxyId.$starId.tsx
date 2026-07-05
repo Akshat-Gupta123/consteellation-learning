@@ -2,15 +2,17 @@ import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-r
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Bot, CheckCircle2, Loader2, Sparkles, Trophy } from "lucide-react";
+import { ArrowLeft, Bot, CheckCircle2, Coins, Loader2, Sparkles, Trophy, X } from "lucide-react";
 import { toast } from "sonner";
 import { getGalaxyById } from "@/lib/galaxy.functions";
 import { awardIC, completeStar, getOrGenerateLesson } from "@/lib/lesson.functions";
+import { redeemIcCode } from "@/lib/qr.functions";
 import { IC_REWARDS } from "@/lib/garage-catalog";
 import type { Galaxy, Lesson, Star } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { MCQCard } from "@/components/MCQCard";
 import { NovaPanel } from "@/components/NovaPanel";
+import { QRScanner } from "@/components/QRScanner";
 
 export const Route = createFileRoute("/_authenticated/lesson/$galaxyId/$starId")({
   component: LessonScreen,
