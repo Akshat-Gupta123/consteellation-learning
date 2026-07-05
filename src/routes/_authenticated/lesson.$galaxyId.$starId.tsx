@@ -367,6 +367,59 @@ function LessonScreen() {
         </button>
       )}
 
+      {/* IC reward scanner — only reachable inside a lesson */}
+      <button
+        onClick={() => setIcOpen(true)}
+        aria-label="Redeem IC reward code"
+        className="fixed bottom-5 left-5 z-40 flex items-center gap-2 rounded-full border border-gold/40 bg-sidebar/95 px-4 py-3 shadow-2xl backdrop-blur transition-transform hover:scale-105 sm:bottom-8 sm:left-8 sm:px-5 sm:py-4 glow-gold"
+      >
+        <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/15 text-gold sm:h-11 sm:w-11">
+          <Coins className="h-5 w-5 sm:h-6 sm:w-6" />
+        </span>
+        <span className="hidden font-display text-sm font-bold sm:inline sm:text-base">
+          Redeem IC
+        </span>
+      </button>
+
+      {icOpen && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-background/70 p-5 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setIcOpen(false)}
+        >
+          <div
+            className="glass w-full max-w-sm rounded-2xl border border-gold/40 p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-gold">
+                <Coins className="h-5 w-5" />
+                <h3 className="font-display text-base font-bold">
+                  Redeem IC reward
+                </h3>
+              </div>
+              <button
+                onClick={() => setIcOpen(false)}
+                aria-label="Close"
+                className="rounded-full p-1 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Scan or type an IC code from your kit. Each code works exactly once.
+            </p>
+            <QRScanner
+              onSubmit={(c) => redeemIcMutation.mutate(c)}
+              pending={redeemIcMutation.isPending}
+              placeholder="IC-XXXX-XXXX-00"
+              submitLabel="Claim"
+            />
+          </div>
+        </div>
+      )}
+
       <NovaPanel
         open={novaOpen}
         onClose={() => setNovaOpen(false)}
