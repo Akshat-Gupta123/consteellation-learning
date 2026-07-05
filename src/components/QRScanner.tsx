@@ -78,7 +78,11 @@ export function QRScanner({
         s.stop()
           .catch(() => {})
           .finally(() => {
-            s.clear().catch(() => {});
+            try {
+              s.clear();
+            } catch {
+              // ignore
+            }
           });
       }
       setScanning(false);
