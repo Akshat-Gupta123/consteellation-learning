@@ -68,12 +68,29 @@ function LessonScreen() {
     },
   });
 
+  const redeemIc = useServerFn(redeemIcCode);
+  const redeemIcMutation = useMutation({
+    mutationFn: async (code: string) =>
+      redeemIc({ data: { code, galaxyId } }),
+    onSuccess: ({ value, newBalance }) => {
+      qc.setQueryData(["profile"], (old: { ic: number } | undefined) =>
+        old ? { ...old, ic: newBalance } : old,
+      );
+      toast.success(`+${value} IC redeemed`, { icon: "🪙" });
+      setIcOpen(false);
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Could not redeem reward.");
+    },
+  });
+
   const [phase, setPhase] = useState<Phase>("core");
   const [stepIndex, setStepIndex] = useState(0);
   const [stepAnswered, setStepAnswered] = useState(false);
   const [quizIndex, setQuizIndex] = useState(0);
   const [quizCorrect, setQuizCorrect] = useState(0);
   const [novaOpen, setNovaOpen] = useState(false);
+  const [icOpen, setIcOpen] = useState(false);
   const [novaUsedOnQuestion, setNovaUsedOnQuestion] = useState<Set<number>>(new Set());
 
   useEffect(() => {
